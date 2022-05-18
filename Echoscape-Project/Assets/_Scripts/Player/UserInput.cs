@@ -10,6 +10,8 @@ namespace Player
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
+		public bool aiming;
+		public bool shooting;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -18,6 +20,7 @@ namespace Player
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 
+		#region Action Map Inputs
 		public void OnMove(InputValue value)
 		{
 			MoveInput(value.Get<Vector2>());
@@ -41,6 +44,18 @@ namespace Player
 			SprintInput(value.isPressed);
 		}
 
+		public void OnAim(InputValue value)
+		{
+			AimInput(value.isPressed);
+		}
+
+		public void OnFire(InputValue value)
+		{
+			FireInput(value.isPressed);
+		}
+		#endregion
+
+		#region Input Functionality
 		public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
@@ -61,6 +76,18 @@ namespace Player
 			sprint = newSprintState;
 		}
 
+		public void FireInput(bool newShootState)
+		{
+			shooting = newShootState;
+		}
+
+		public void AimInput(bool newAimState)
+		{
+			aiming = newAimState;
+		}
+		#endregion
+
+		#region Cursor Functionality
 		private void OnApplicationFocus(bool hasFocus)
 		{
 			SetCursorState(cursorLocked);
@@ -70,6 +97,7 @@ namespace Player
 		{
 			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
 		}
+		#endregion
 	}
 	
 }
