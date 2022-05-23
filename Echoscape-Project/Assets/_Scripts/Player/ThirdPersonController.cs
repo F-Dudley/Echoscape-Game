@@ -128,12 +128,6 @@ namespace Player
             CameraRotation();
         }
 
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(aimPosition, 0.25f);
-        }
-
         private void OnDrawGizmosSelected()
         {
             Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
@@ -220,8 +214,8 @@ namespace Player
                 _speed = targetSpeed;
             }
 
-            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * speedChangeRate);
-            if (_animationBlend < 0.01f) _animationBlend = 0f;
+            _animationBlend = Mathf.Lerp(_animationBlend, _input.move.y < 0 ? -targetSpeed: targetSpeed, Time.deltaTime * speedChangeRate);
+            if (Mathf.Approximately(_animationBlend, 0) && targetSpeed == 0) _animationBlend = 0f;
 
             // normalise input direction
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
@@ -230,13 +224,17 @@ namespace Player
             // if there is a move input rotate player when the player is moving
             if (_input.move != Vector2.zero)
             {
+                float absAtan2 = Mathf.Atan2(inputDirection.x, Mathf.Abs(inputDirection.z));
+
                 _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                                   _playerCamera.transform.eulerAngles.y;
-                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
-                    rotationSmoothTime);
+                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, 
+                                    absAtan2 * Mathf.Rad2Deg + _playerCamera.transform.eulerAngles.y, 
+                                    ref _rotationVelocity,
+                                    rotationSmoothTime);
 
-                // rotate to face input direction relative to camera position
-                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                    // rotate to face input direction relative to camera position
+                    transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);                    
             }
 
 
