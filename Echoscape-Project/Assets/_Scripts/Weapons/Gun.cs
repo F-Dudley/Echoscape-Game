@@ -6,22 +6,28 @@ namespace Weapons
 {
     public enum GunType
     {
-        Pistol,
-        Rifle,
-        Shotgun,
-        Sniper
+        Pistol = 0,
+        Rifle = 1,
+        Shotgun = 2,
+        Sniper = 3,
     }
 
     [System.Serializable]
     public class Gun : MonoBehaviour
     {
-        [Header("Base Gun Stats")]
+        [Header("Stats")]
         public GunType gunType;
         [SerializeField] protected LayerMask fireCollisionMask;
         [SerializeField] protected int damage = 10;
         [SerializeField] protected float fireRate = 0.5f;
         [SerializeField] protected float range = 100f;
         [SerializeField] protected float impactForce = 30f;
+
+        [Header("Ammo")]
+        [SerializeField] protected int currentAmmo;
+        [SerializeField] protected int magazineSize = 30;
+
+        [Header("Reloading")]
         [SerializeField] protected float reloadTime = 1f;
 
         [SerializeField] protected Transform fireLocation;
@@ -36,6 +42,11 @@ namespace Weapons
             get { return Time.time > fireDelayTime; }
         }
 
+        public bool CanReload
+        {
+            get { return currentAmmo < magazineSize; }
+        }
+
         public bool IsReloading
         {
             get { return false; }
@@ -45,6 +56,8 @@ namespace Weapons
         {
             reloadDelay = new WaitForSeconds(reloadTime);
             fireDelayTime = Time.time;
+
+            currentAmmo = magazineSize;
         }
 
         public virtual void Shoot()

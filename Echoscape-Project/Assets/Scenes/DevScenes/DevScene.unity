@@ -817,11 +817,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4849140651953746, guid: b017a00e018b1bc4f9ef2a84e5644a92, type: 3}
   m_PrefabInstance: {fileID: 582540289}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &594763944 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7598341999733968074, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-  m_PrefabInstance: {fileID: 1818263311800476621}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &612318205 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5951454992880442286, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
@@ -1018,6 +1013,8 @@ MonoBehaviour:
   fireRate: 0.5
   range: 100
   impactForce: 30
+  currentAmmo: 0
+  magazineSize: 30
   reloadTime: 1
   fireLocation: {fileID: 0}
 --- !u!4 &912130209
@@ -1287,6 +1284,8 @@ MonoBehaviour:
   fireRate: 0.5
   range: 100
   impactForce: 30
+  currentAmmo: 0
+  magazineSize: 30
   reloadTime: 3
   fireLocation: {fileID: 1773027801}
 --- !u!4 &1170384888 stripped
@@ -1743,7 +1742,7 @@ PrefabInstance:
     - target: {fileID: 3055847307168131050, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: m_Effectors.Array.data[0].m_Transform
       value: 
-      objectReference: {fileID: 594763944}
+      objectReference: {fileID: 0}
     - target: {fileID: 3055847307168131050, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: m_Effectors.Array.data[0].m_Style.size
       value: 0.1
@@ -1767,11 +1766,11 @@ PrefabInstance:
     - target: {fileID: 3869353433105547154, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: weaponSlots.Array.data[0].weapon
       value: 
-      objectReference: {fileID: 1155558337}
+      objectReference: {fileID: 912130208}
     - target: {fileID: 3869353433105547154, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: weaponSlots.Array.data[1].weapon
       value: 
-      objectReference: {fileID: 912130208}
+      objectReference: {fileID: 1155558337}
     - target: {fileID: 3922376825656941385, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -1812,10 +1811,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 5048248582894255948, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5951454992880442272, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -1845,6 +1840,14 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 7598341999733968074, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7598341999733968074, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -61
+      objectReference: {fileID: 0}
+    - target: {fileID: 7598341999733968074, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 90
       objectReference: {fileID: 0}
@@ -1868,24 +1871,8 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -4.32
       objectReference: {fileID: 0}
-    - target: {fileID: 7726012813236818460, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-      propertyPath: m_Data.m_HintWeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726012813236818460, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-      propertyPath: m_SettingsGUIToggle
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726012813236818460, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-      propertyPath: m_SourceObjectsGUIToggle
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726012813236818460, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-      propertyPath: m_Data.m_MaintainTargetPositionOffset
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726012813236818460, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
-      propertyPath: m_Data.m_MaintainTargetRotationOffset
+    - target: {fileID: 8230589357178541338, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}
+      propertyPath: m_Weight
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9020309286292793711, guid: 63fbde18d18dfb64f8e35ebb98221c26, type: 3}

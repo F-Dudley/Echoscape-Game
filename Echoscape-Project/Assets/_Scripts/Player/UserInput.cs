@@ -12,6 +12,9 @@ namespace Player
 		public bool sprint;
 		public bool aiming;
 		public bool shooting;
+		public bool reloading;
+
+		public bool swapWeapon;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -53,6 +56,16 @@ namespace Player
 		{
 			FireInput(value.isPressed);
 		}
+
+		public void OnReload(InputValue value)
+		{
+			ReloadInput(value.isPressed);
+		}
+
+		public void OnSwapWeapon(InputValue value)
+		{
+			SwapWeaponInput(value.isPressed);
+		}
 		#endregion
 
 		#region Input Functionality
@@ -81,9 +94,19 @@ namespace Player
 			shooting = newShootState;
 		}
 
+		public void ReloadInput(bool newReloadState)
+		{
+			reloading = newReloadState;
+		}
+
 		public void AimInput(bool newAimState)
 		{
 			aiming = newAimState;
+		}
+
+		public void SwapWeaponInput(bool newSwapState)
+		{
+			swapWeapon = newSwapState;
 		}
 		#endregion
 
