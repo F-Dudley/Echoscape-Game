@@ -6,11 +6,14 @@ using Unity.Burst;
 
 namespace TerrainGeneration
 {
-    /*
-    [BurstCompile]
-    public struct MarchJob : IJobParrallelFor
-    {
 
+    [BurstCompile]
+    public struct MarchJob : IJobParallelFor
+    {
+        public void Execute(int index)
+        {
+
+        }
     }
-    */
+    
 }
