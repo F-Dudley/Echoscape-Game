@@ -261,6 +261,36 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &238260647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 238260648}
+  m_Layer: 7
+  m_Name: Chunk Container
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &238260648
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238260647}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1129903040}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &346691648
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,7 +434,8 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 238260648}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -420,10 +451,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24940126e7eb43e4cbef6e9e9aff35c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _terrainSize: 500
-  _numChunks: 10
-  _pointsPerChunk: 30
-  _noiseHeightMultiplier: 0.075
-  _noiseScale: 0.75
+  chunks: []
+  planetAttributes:
+    terrainSize: 300
+    numChunks: 5
+    pointsPerChunk: 20
+    isoLevel: 0
+    noiseScale: 0.3
+    noiseHeightMultiplier: 0.04
   densityTexture: {fileID: 0}
   densityShader: {fileID: 7200000, guid: df4e6b8bfdf154e41b3700d99d888848, type: 3}
+  chunkHolder: {fileID: 238260648}
+  drawDebug: 1
