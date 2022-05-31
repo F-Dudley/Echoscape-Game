@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Rendering;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -11,6 +11,7 @@ namespace TerrainGeneration
 {
     namespace ComputeStructs
     {
+        [BurstCompile]
         public struct Vertex
         {
             public float3 position;
@@ -18,6 +19,7 @@ namespace TerrainGeneration
             public int2 id;
         }
 
+        [BurstCompile]
         public struct Triangle
         {
             Vertex vertexA;
@@ -34,31 +36,36 @@ namespace TerrainGeneration
         [ReadOnly] NativeArray<ChunkAttributes> chunks;
 
         // Main Arrays
-        NativeArray<Triangle> triangles;
+        NativeHashMap<int, ListBuffer<Triangle>> triangles;
         [ReadOnly] NativeArray<int> triangulationTable;
 
         // Density Texture
-        
-        // [ReadOnly] NativeArray<T> textureData;
+        [ReadOnly] NativeArray<float> textureData;
         [ReadOnly] int textureSize;
+        [ReadOnly] int textureLayerOffset;
 
-        public MarchJob(NativeArray<ChunkAttributes> chunks, PlanetAttributes planetAttributes, int textureSize,
-                        NativeArray<int> triangulationTable, NativeArray<Triangle> triangles)
+
+        public MarchJob (PlanetAttributes planetAttributes, NativeArray<ChunkAttributes> chunks,
+                         NativeArray<float> textureData, int textureLayerOffset, int textureSize,
+                         NativeArray<int> triangulationTable, NativeHashMap<int, ListBuffer<Triangle>> triangles)
         {
             this.planetAttributes = planetAttributes;
             this.chunks = chunks;
-            this.triangles = triangles;
-            this.triangulationTable = triangulationTable;
 
+            this.textureData = textureData;
             this.textureSize = textureSize;
+            this.textureLayerOffset = textureLayerOffset;
+
+            this.triangulationTable = triangulationTable;
+            this.triangles = triangles;
         }
 
         public void Execute(int index)
         {
-            int numCubesPerAxis = planetAttributes.pointsPerChunk - 1;
+            int numCubesPerAxis = planetAttributes.pointsPerAxis - 1;
             // if (index >= numCubesPerAxis) return;
 
-            int3 coord = chunks[index].id * (planetAttributes.pointsPerChunk - 1);
+            int3 coord = chunks[index].id * (planetAttributes.pointsPerAxis - 1);
 
             NativeArray<int3> cornerCoords = new NativeArray<int3>(8, Allocator.Temp);
             cornerCoords[0] = coord + new int3(0, 0, 0);
@@ -122,7 +129,7 @@ namespace TerrainGeneration
         {
             coord = coord;
 
-            return coord.z * planetAttributes.pointsPerChunk * planetAttributes.pointsPerChunk + coord.y * planetAttributes.pointsPerChunk + coord.x;
+            return coord.z * planetAttributes.pointsPerAxis * planetAttributes.pointsPerAxis + coord.y * planetAttributes.pointsPerAxis + coord.x;
         }
 
         // Figure out reading 3D RenderTexture Data. --------------------------------- NEED TO FINISh
@@ -145,6 +152,8 @@ namespace TerrainGeneration
 
             return math.normalize(new float3(dx, dy, dz));
         }
+
+        private int GetTriangulationIndex(int format, int index) => (format * 256) + index;
     }
     
 }
