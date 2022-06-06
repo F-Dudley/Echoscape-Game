@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
@@ -16,13 +17,16 @@ namespace TerrainGeneration
         [SerializeField] private Transform chunkHolder;        
 
         [Header("Density Texture")]
-        [SerializeField] [ReadOnly] private int textureSize;
+        [SerializeField] private int textureSize;
         [SerializeField] private RenderTexture densityTexture;
         [SerializeField] private ComputeShader densityShader;
         private int densityKernel;
 
         [Header("Mesh Settings")]
         [SerializeField] private Material meshMaterial;
+        [SerializeField] private bool useFlatShading = true;
+
+        private Coroutine meshCreation;
 
         #if UNITY_EDITOR
 
@@ -34,25 +38,15 @@ namespace TerrainGeneration
         #region Unity Functions
         private void Start()
         {
-            float startFullProcessTime = Time.realtimeSinceStartup;
-
-            // Density Texture Generation
-            float startTextureTime = Time.realtimeSinceStartup;
+            // Create Needed Textures
             InitTextures();
-            Debug.Log("Texture Gen Time: " + (Time.realtimeSinceStartup - startTextureTime));
 
             // Terrain Generation w/ Cube Marching
-            float startChunkTime = Time.realtimeSinceStartup;
             CreateChunks();
-            GenerateChunks();
-            Debug.Log("Chunk Gen Time: " + (Time.realtimeSinceStartup - startChunkTime));
 
-            // Prop Gen
-            float startPropTime = Time.realtimeSinceStartup;
-            GenerateSceneProps();
-            Debug.Log("Prop Gen Time: " + (Time.realtimeSinceStartup - startPropTime));
+            AsyncGPUReadbackRequest request = AsyncGPUReadback.Request(densityTexture);
 
-            Debug.Log("Full Terrain Gen Time: " + (Time.realtimeSinceStartup - startFullProcessTime));
+            meshCreation = StartCoroutine(GenerateTerrain(request));
         }
 
         #if UNITY_EDITOR
@@ -72,11 +66,13 @@ namespace TerrainGeneration
             }
         }
 
-        #endif
+#endif
 
         #endregion
 
         #region Texture Generation
+        public RenderTexture getDensityTexture() => densityTexture;
+
         private void InitTextures()
         {
             densityKernel = densityShader.FindKernel("CSMain");
@@ -149,64 +145,73 @@ namespace TerrainGeneration
                         chunkGameObject.layer = chunkHolder.gameObject.layer;
                         chunkGameObject.transform.parent = chunkHolder;
 
-                        chunks[i] = new Chunk 
-                        {
-                            attributes = new ChunkAttributes 
-                            {
-                                id = new int3(x, y, z),
-                                centre = new float3(centreX, centreY, centreZ),
-                                size = chunkSize,
-                            },
+                        int3 id = new int3(x, y, z);
+                        float3 centre = new float3(centreX, centreY, centreZ);
 
-                            meshHolder = chunkGameObject,
-                        };
+                        chunks[i] = new Chunk(id, centre, chunkSize, meshMaterial, chunkGameObject);
 
                         i++;
                     }
                 }
             }
         }
-
-        private void GenerateChunks()
+        
+        private IEnumerator GenerateTerrain(AsyncGPUReadbackRequest req)
         {
-            NativeArray<int> triangulationTable = new NativeArray<int>(256 * 16, Allocator.TempJob);
-            for (int format = 0; format < 256; format++)
+            req.WaitForCompletion();
+            if (req.hasError)
             {
-                for (int i = 0; i < 16; i++)
+                Debug.LogError($"Error Occured in Texture Data Readback");
+                yield break;
+            }
+
+            NativeArray<float> textureData = req.GetData<float>();
+
+            NativeArray<int> triangulationTable = new NativeArray<int>(CubeMarchTables.GetFlatTriangulationTable(), Allocator.TempJob);
+            NativeArray<int> cornerIndexATable = new NativeArray<int>(CubeMarchTables.cornerIndexAFromEdge, Allocator.TempJob);
+            NativeArray<int> cornerIndexBTable = new NativeArray<int>(CubeMarchTables.cornerIndexBFromEdge, Allocator.TempJob);
+
+            int numCubePerAxis = planetAttributes.pointsPerAxis - 1;
+            NativeArray<int3> ids = new NativeArray<int3>(numCubePerAxis * numCubePerAxis * numCubePerAxis, Allocator.TempJob);
+            for (int x = 0; x < numCubePerAxis; x++)
+            {
+                for (int y = 0; y < numCubePerAxis; y++)
                 {
-                    triangulationTable[(format * 256) + i] = CubeMarchTables.triangulation[format][i];
+                    for (int z = 0; z < numCubePerAxis; z++)
+                    {
+                        ids[(z * numCubePerAxis) + (y * numCubePerAxis) + x] = new int3(x, y, z);
+                    }
                 }
             }
 
-            NativeArray<ChunkAttributes> chunkArray = new NativeArray<ChunkAttributes>(chunks.Length, Allocator.TempJob);
-            for (int i = 0; i < chunks.Length; i++)
+            NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(50, Allocator.TempJob);
+            Debug.Log($"Triangles Capacity: {triangles.Capacity}");
+
+            Debug.Log($"Texture Data Size: {textureData.Length}\n Texture Data Initial Size: {textureSize}\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {ids.Length}");
+
+            float startTime = Time.time;
+            foreach (Chunk chunk in chunks)
             {
-                chunkArray[i] = chunks[i].attributes;
+                MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, ids,
+                                                     triangulationTable, cornerIndexATable, cornerIndexBTable,
+                                                     textureData, textureSize, req.layerDataSize,
+                                                     triangles.AsParallelWriter());
+                JobHandle handler = marchJob.Schedule(ids.Length, 1);
+                handler.Complete();
+
+                chunk.CreateMesh(triangles.ToArray(), useFlatShading);
+                triangles.Clear();
             }
+            Debug.Log($"Time Taken: {Time.time - startTime}s");
 
-            NativeHashMap<int, ListBuffer<ComputeStructs.Triangle>> triangles = new NativeHashMap<int, ListBuffer<ComputeStructs.Triangle>>(chunks.Length, Allocator.TempJob);
-            Debug.Log(triangles[0][0]);
+            textureData.Dispose();
+            triangulationTable.Dispose();
+            cornerIndexATable.Dispose();
+            cornerIndexBTable.Dispose();
+            ids.Dispose();
+            triangles.Dispose();
 
-            NativeArray<float> densityArray = new NativeArray<float>(textureSize * textureSize * textureSize, Allocator.TempJob);
-            AsyncGPUReadback.RequestIntoNativeArray(ref densityArray, densityTexture, 0, (req) => {
-                if (req.hasError)
-                {
-                    Debug.LogError("Error:");
-                    return;
-                }
-                else Debug.Log("Density Req Successful");
-
-                // Perform Cube Marching;
-                MarchJob marchingJob = new MarchJob(planetAttributes, chunkArray, densityArray, req.layerDataSize, textureSize, triangulationTable, triangles);
-
-                JobHandle marchingJobHandle = marchingJob.Schedule(chunks.Length, chunks.Length / 10);
-                marchingJobHandle.Complete();
-
-                triangles.Dispose();
-                triangulationTable.Dispose();
-                chunkArray.Dispose();
-                densityArray.Dispose();
-            });
+            GenerateSceneProps();
         }
         #endregion
 

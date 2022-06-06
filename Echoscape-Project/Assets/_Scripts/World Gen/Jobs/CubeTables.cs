@@ -6,6 +6,9 @@ namespace TerrainGeneration
 {
     static class CubeMarchTables
     {
+        public static int[] cornerIndexAFromEdge= new int[12] { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3 };
+        public static int[] cornerIndexBFromEdge = new int[12] { 1, 2, 3, 0, 5, 6, 7, 4, 4, 5, 6, 7 };
+
         public static int[][] triangulation = new int[256][] {
             new int[16] {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
             new int[16] { 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
@@ -265,19 +268,19 @@ namespace TerrainGeneration
             new int[16] {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
         };
 
-        public static NativeArray<int> GetNativeTriTable()
+        public static int[] GetFlatTriangulationTable()
         {
-            NativeArray<int> triTable = new NativeArray<int>(256 * 16, Allocator.TempJob);
+            int[] flatTable = new int[256 * 16];
 
             for (int format = 0; format < 256; format++)
             {
-                for (int i = 0; i < 16; i++)
+                for (int index = 0; index < 16; index++)
                 {
-                    triTable[(format * 256) + i] = triangulation[format][i];
+                    flatTable[(format * 16) + index] = triangulation[format][index];
                 }
             }
 
-            return triTable;
+            return flatTable;
         }
     }
 }
