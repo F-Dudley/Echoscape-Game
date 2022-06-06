@@ -614,7 +614,7 @@ MonoBehaviour:
     terrainSize: 300
     numChunks: 5
     pointsPerAxis: 20
-    isoLevel: 1
+    isoLevel: 0
     noiseScale: 1
     noiseHeightMultiplier: 0.05
   chunks: []

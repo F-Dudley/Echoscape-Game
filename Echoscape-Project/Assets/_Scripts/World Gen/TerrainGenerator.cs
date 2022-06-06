@@ -44,8 +44,10 @@ namespace TerrainGeneration
             // Terrain Generation w/ Cube Marching
             CreateChunks();
 
+            // Request Density Texture From GPU
             AsyncGPUReadbackRequest request = AsyncGPUReadback.Request(densityTexture);
 
+            // Terrain Generation For Each Chunk, Contained in Coroutine.
             meshCreation = StartCoroutine(GenerateTerrain(request));
         }
 
@@ -189,7 +191,7 @@ namespace TerrainGeneration
 
             Debug.Log($"Texture Data Size: {textureData.Length}\n Texture Data Initial Size: {textureSize}\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {ids.Length}");
 
-            float startTime = Time.time;
+            float startTime = Time.realtimeSinceStartup;
             foreach (Chunk chunk in chunks)
             {
                 MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, ids,
@@ -199,10 +201,12 @@ namespace TerrainGeneration
                 JobHandle handler = marchJob.Schedule(ids.Length, 1);
                 handler.Complete();
 
+                Debug.Log($"Triangles Amount Before Chunk Build: {triangles.Length}");
+
                 chunk.CreateMesh(triangles.ToArray(), useFlatShading);
                 triangles.Clear();
             }
-            Debug.Log($"Time Taken: {Time.time - startTime}s");
+            Debug.Log($"Time Taken: {Time.time - startTime}ms");
 
             textureData.Dispose();
             triangulationTable.Dispose();

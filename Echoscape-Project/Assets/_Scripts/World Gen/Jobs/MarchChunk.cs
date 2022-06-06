@@ -10,7 +10,6 @@ using TerrainGeneration.ComputeStructs;
 
 namespace TerrainGeneration
 {
-    /*
     namespace ComputeStructs
     {
         [BurstCompile]
@@ -29,7 +28,6 @@ namespace TerrainGeneration
             public Vertex vertexC;
         }
     }
-    */
 
     [BurstCompile]
     public struct MarchChunk : IJobParallelFor
@@ -91,7 +89,7 @@ namespace TerrainGeneration
             cornerCoords[6] = coord + new int3(1, 1, 1);
             cornerCoords[7] = coord + new int3(0, 1, 1);
 
-            // Determine Cube Configuration
+            // Determine Cube Configuration - Cube configuration always comes back as 0;
             int cubeConfiguration = 0;
             for (int i = 0; i < 8; i++)
             {
@@ -100,25 +98,26 @@ namespace TerrainGeneration
                     cubeConfiguration |= (1 << i);
                 }
             }
-            Debug.Log("Determining Cube Config: " + cubeConfiguration);
+            //Debug.Log("Determining Cube Config: " + cubeConfiguration);
 
+            int configIndex = cubeConfiguration * 16;
             // Create Triangles for Cube Config
             for (int i = 0; i < 16; i += 3)
             {
-                if (triangulationTable[cubeConfiguration + i] == -1)
+                if (triangulationTable[configIndex + i] == -1)
                 {
                     break;
                 }
 
-                int edgeIndexA = triangulationTable[cubeConfiguration + i];
+                int edgeIndexA = triangulationTable[configIndex + i];
                 int a0 = cornerIndexAFromEdge[edgeIndexA];
                 int a1 = cornerIndexBFromEdge[edgeIndexA];
 
-                int edgeIndexB = triangulationTable[cubeConfiguration + (i + 1)];
+                int edgeIndexB = triangulationTable[configIndex + (i + 1)];
                 int b0 = cornerIndexAFromEdge[edgeIndexB];
                 int b1 = cornerIndexBFromEdge[edgeIndexB];
 
-                int edgeIndexC = triangulationTable[cubeConfiguration + (i + 2)];
+                int edgeIndexC = triangulationTable[configIndex + (i + 2)];
                 int c0 = cornerIndexAFromEdge[edgeIndexC];
                 int c1 = cornerIndexBFromEdge[edgeIndexC];
 
@@ -134,7 +133,7 @@ namespace TerrainGeneration
                     vertexC = vC,
                 };
                 triangles.AddNoResize(triangle);
-                Debug.Log("Adding Triangle");
+                //Debug.Log("Adding Triangle"); // Have To Turn of Burst Compilation to View Debug Messages - Takes a lot longer also.
             }
 
             cornerCoords.Dispose();

@@ -9,25 +9,6 @@ using TerrainGeneration.ComputeStructs;
 
 namespace TerrainGeneration
 {
-    namespace ComputeStructs
-    {
-        [BurstCompile]
-        public struct Vertex
-        {
-            public float3 position;
-            public float3 normal;
-            public int2 id;
-        }
-
-        [BurstCompile]
-        public struct Triangle
-        {
-            public Vertex vertexA;
-            public Vertex vertexB;
-            public Vertex vertexC;
-        }
-    }
-
     [BurstCompile]
     public struct MarchJob : IJobParallelFor
     {
@@ -86,14 +67,14 @@ namespace TerrainGeneration
 
                         coord = currId + (chunks[index].id * numCubesPerAxis);
 
-                        cornerCoords[0] = coord + new int3(0, 0, 0);
-                        cornerCoords[1] = coord + new int3(1, 0, 0);
-                        cornerCoords[2] = coord + new int3(1, 0, 1);
-                        cornerCoords[3] = coord + new int3(0, 0, 1);
-                        cornerCoords[4] = coord + new int3(0, 1, 0);
-                        cornerCoords[5] = coord + new int3(1, 1, 0);
-                        cornerCoords[6] = coord + new int3(1, 1, 1);
-                        cornerCoords[7] = coord + new int3(0, 1, 1);
+                        cornerCoords[0] = coord + (new int3(0, 0, 0));
+                        cornerCoords[1] = coord + (new int3(1, 0, 0));
+                        cornerCoords[2] = coord + (new int3(1, 0, 1));
+                        cornerCoords[3] = coord + (new int3(0, 0, 1));
+                        cornerCoords[4] = coord + (new int3(0, 1, 0));
+                        cornerCoords[5] = coord + (new int3(1, 1, 0));
+                        cornerCoords[6] = coord + (new int3(1, 1, 1));
+                        cornerCoords[7] = coord + (new int3(0, 1, 1));
 
                         cubeConfig = 0;
                         for (int i = 0; i < 8; i++)
@@ -193,7 +174,7 @@ namespace TerrainGeneration
         // Figure out reading 3D RenderTexture Data. --------------------------------- NEED TO FINISh
         private float SampleDensityMap(int3 coord)
         {
-            return textureData[(coord.z) + (coord.y) + coord.x];
+            return textureData[(coord.z * textureSize) + (coord.y * textureSize) + coord.x];
         }
 
         private float3 CalculateNormal(int3 coord)
