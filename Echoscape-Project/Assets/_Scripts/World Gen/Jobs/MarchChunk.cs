@@ -80,20 +80,20 @@ namespace TerrainGeneration
 
             // Calculate Coords of Current Cubes Corners
             NativeArray<int3> cornerCoords = new NativeArray<int3>(8, Allocator.Temp);
-            cornerCoords[0] = coord + new int3(0, 0, 0);
-            cornerCoords[1] = coord + new int3(1, 0, 0);
-            cornerCoords[2] = coord + new int3(1, 0, 1);
-            cornerCoords[3] = coord + new int3(0, 0, 1);
-            cornerCoords[4] = coord + new int3(0, 1, 0);
-            cornerCoords[5] = coord + new int3(1, 1, 0);
-            cornerCoords[6] = coord + new int3(1, 1, 1);
-            cornerCoords[7] = coord + new int3(0, 1, 1);
+            cornerCoords[0] = coord + (new int3(0, 0, 0));
+            cornerCoords[1] = coord + (new int3(1, 0, 0));
+            cornerCoords[2] = coord + (new int3(1, 0, 1));
+            cornerCoords[3] = coord + (new int3(0, 0, 1));
+            cornerCoords[4] = coord + (new int3(0, 1, 0));
+            cornerCoords[5] = coord + (new int3(1, 1, 0));
+            cornerCoords[6] = coord + (new int3(1, 1, 1));
+            cornerCoords[7] = coord + (new int3(0, 1, 1));
 
             // Determine Cube Configuration - Cube configuration always comes back as 0;
             int cubeConfiguration = 0;
             for (int i = 0; i < 8; i++)
             {
-                if (SampleDensity(cornerCoords[i]) < planetAttributes.isoLevel)
+                if (SampleDensity(cornerCoords[i]) < planetAttributes.isoLevel) // The Texture it is Sampling is Correct as seen by the Image in the Development World Gen Scene.
                 {
                     cubeConfiguration |= (1 << i);
                 }
@@ -194,7 +194,7 @@ namespace TerrainGeneration
         {
             coord = coord - chunkAttributes.GetChunkCoord(planetAttributes.pointsPerAxis - 1);
 
-            return coord.z * planetAttributes.pointsPerAxis * planetAttributes.pointsPerAxis + coord.y * planetAttributes.pointsPerAxis + coord.x;
+            return coord.z * planetAttributes.pointsPerAxis + planetAttributes.pointsPerAxis + coord.y * planetAttributes.pointsPerAxis + coord.x;
         }
         #endregion
 
@@ -203,7 +203,7 @@ namespace TerrainGeneration
         {
             coord = math.max(0, math.min(coord, textureSize));
 
-            return textureData[coord.x + coord.y + coord.z];
+            return textureData[(coord.z * textureSize) + (coord.y * textureSize) + coord.x];
         }
         #endregion
     }

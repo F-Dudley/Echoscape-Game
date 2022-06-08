@@ -58,97 +58,41 @@ namespace TerrainGeneration
             meshCollider = meshRenderer.gameObject.AddComponent<MeshCollider>();
         }
 
-        public void CreateMesh(ListBuffer<ComputeStructs.Triangle> triangles, bool useFlatShading)
+        public void CreateMesh(NativeList<Triangle> triangles, bool useFlatShading)
         {
-            Dictionary<int2, int> vertexMap = new Dictionary<int2, int>();
-            List<Vector3> verticies = new List<Vector3>();
-            List<Vector3> normals = new List<Vector3>();
-            List<int> finalTris = new List<int>();
-
-            int triangleIndex = 0;
-
-            Debug.Log($"Triangle Capacity: {triangles.Capacity} / Triangles Length: {triangles.Count}");
-            for (int i = 0; i < triangles.Capacity; i++)
+            if (triangles.Length == 0)
             {
-                AddVertex(triangles[i].vertexA, ref verticies, ref normals, ref finalTris, ref vertexMap, triangleIndex, useFlatShading);
-                triangleIndex++;
-
-                AddVertex(triangles[i].vertexB, ref verticies, ref normals, ref finalTris, ref vertexMap, triangleIndex, useFlatShading);
-                triangleIndex++;
-
-                AddVertex(triangles[i].vertexC, ref verticies, ref normals, ref finalTris, ref vertexMap, triangleIndex, useFlatShading);
-                triangleIndex++;
+                Debug.Log("No Triangles Submitted");
+                return;
             }
 
-            Debug.Log("Processed Verticies Count: " + verticies.Count);
+            NativeHashMap<int2, int> vertexIndexMap = new NativeHashMap<int2, int>(triangles.Length * 3, Allocator.TempJob);
+            NativeList<float3> processedVertices = new NativeList<float3>(triangles.Length * 3, Allocator.TempJob);
+            NativeList<float3> processedNormals = new NativeList<float3>(triangles.Length * 3, Allocator.TempJob);
+            NativeList<int> processedTriangles = new NativeList<int>(triangles.Length * 3, Allocator.TempJob);
 
-            meshCollider.sharedMesh = null;
+            FilterChunkTriangles triangleFilterJob = new FilterChunkTriangles(triangles,
+                                                                              processedVertices, processedNormals, processedTriangles,
+                                                                              vertexIndexMap, useFlatShading);
+            JobHandle handler = triangleFilterJob.Schedule();
+            handler.Complete();
+
+            Debug.Log($"Triangle Amount: {processedTriangles.Length}");
+            Debug.Log($"Vertex Amount: {processedVertices.Length}");
 
             mesh.Clear();
-            mesh.SetVertices(verticies);
-            mesh.SetTriangles(finalTris, 0, true);
+            mesh.SetVertices(processedVertices.AsArray());
+            mesh.SetTriangles(processedTriangles.ToArray(), 0, true);
 
             if (useFlatShading) mesh.RecalculateNormals();
-            else mesh.SetNormals(normals);
+            else mesh.SetNormals(processedNormals.AsArray());
 
             meshCollider.sharedMesh = mesh;
 
-            Debug.Log("Settings Mesh Data");
-        }
-
-        public void CreateMesh(Triangle[] triangles, bool useFlatShading)
-        {
-            Dictionary<int2, int> vertexMap = new Dictionary<int2, int>();
-            List<Vector3> verticies = new List<Vector3>();
-            List<Vector3> normals = new List<Vector3>();
-            List<int> finalTris = new List<int>();
-
-            int triangleIndex = 0;
-
-            Debug.Log($"Vertex Count: {triangles.Length * 3} / Triangles Length: {triangles.Length}");
-            for (int i = 0; i < triangles.Length; i++)
-            {
-                AddVertex(triangles[i].vertexA, ref verticies, ref normals, ref finalTris, ref vertexMap, triangleIndex, useFlatShading);
-                triangleIndex++;
-
-                AddVertex(triangles[i].vertexB, ref verticies, ref normals, ref finalTris, ref vertexMap, triangleIndex, useFlatShading);
-                triangleIndex++;
-
-                AddVertex(triangles[i].vertexC, ref verticies, ref normals, ref finalTris, ref vertexMap, triangleIndex, useFlatShading);
-                triangleIndex++;
-            }
-
-            meshCollider.sharedMesh = null;
-
-            mesh.Clear();
-            mesh.SetVertices(verticies);
-            mesh.SetTriangles(finalTris, 0, true);
-
-            if (useFlatShading) mesh.RecalculateNormals();
-            else mesh.SetNormals(normals);
-
-            meshCollider.sharedMesh = mesh;
-        }
-
-        private void AddVertex(Vertex vertex, ref List<Vector3> vertexList, ref List<Vector3> normalList, ref List<int> triangleList, 
-                               ref Dictionary<int2, int> vertexDupeMap, 
-                               int triangleIndex, bool useflatShade)
-        {
-            if (!useflatShade && vertexDupeMap.TryGetValue(vertex.id, out int sharedVertexIndex))
-            {
-                triangleList.Add(sharedVertexIndex);
-            }
-            else
-            {
-                if (!useflatShade)
-                {
-                    vertexDupeMap.Add(vertex.id, triangleIndex);
-                }
-
-                vertexList.Add(vertex.position);
-                normalList.Add(vertex.normal);
-                triangleList.Add(triangleIndex);
-            }
+            vertexIndexMap.Dispose(handler);
+            processedVertices.Dispose(handler);
+            processedNormals.Dispose(handler);
+            processedTriangles.Dispose(handler);
         }
     }
 }

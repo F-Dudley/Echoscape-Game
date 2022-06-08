@@ -1,25 +1,45 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Burst;
+using System.Linq;
 
 namespace TerrainGeneration
 {
+    [System.Serializable]
+    public struct DensityTest : System.IComparable<DensityTest>
+    {
+        public string valueID;
+        public float value;
+
+        public int timesFound;
+
+        public int CompareTo(DensityTest obj)
+        {
+            if (obj.valueID == valueID && obj.value == value) return 1;
+            else return 0;
+        }
+    }
+
     public class TerrainGenerator : MonoBehaviour
     {
 
         [Header("Terrain Settings")]
         [SerializeField] private PlanetAttributes planetAttributes;
         [SerializeField] private Chunk[] chunks;
-        [SerializeField] private Transform chunkHolder;        
+        [SerializeField] private Transform chunkHolder;
 
         [Header("Density Texture")]
         [SerializeField] private int textureSize;
         [SerializeField] private RenderTexture densityTexture;
         [SerializeField] private ComputeShader densityShader;
+
+
+
         private int densityKernel;
 
         [Header("Mesh Settings")]
@@ -28,10 +48,13 @@ namespace TerrainGeneration
 
         private Coroutine meshCreation;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
 
         [Header("Debug")]
-        [SerializeField] private bool drawDebug;
+        [SerializeField] private bool drawDebug = false;
+        [SerializeField] private bool collectDebugInfo = false;
+
+        [SerializeField] private List<DensityTest> uniqueDensity;
 
         #endif
 
@@ -51,7 +74,7 @@ namespace TerrainGeneration
             meshCreation = StartCoroutine(GenerateTerrain(request));
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
 
         private void OnDrawGizmos()
         {
@@ -81,7 +104,7 @@ namespace TerrainGeneration
 
             textureSize = planetAttributes.numChunks * (planetAttributes.pointsPerAxis - 1) + 1;
             CreateTexture("Density Texture", textureSize, ref densityTexture);
-            Debug.Log("Density Texture Size: " + (textureSize * textureSize * textureSize));
+            Debug.Log("Density RenderTexture Size: " + (textureSize * textureSize * textureSize));
 
             densityShader.SetTexture(densityKernel, "DensityTexture", densityTexture);
 
@@ -167,14 +190,51 @@ namespace TerrainGeneration
                 yield break;
             }
 
-            NativeArray<float> textureData = req.GetData<float>();
+            NativeArray<float> textureData = new NativeArray<float>(textureSize * textureSize * textureSize, Allocator.TempJob);
+            Debug.Log($"Requested Data: ({req.width}, {req.height}, {req.layerCount})\nTotal Req Data Size: {req.width * req.height * req.layerCount}");
+            for (int i = 0; i < req.layerCount; i++)
+            {
+                NativeArray<float> data = req.GetData<float>(i);
+
+                for (int y = 0; y < req.height; y++)
+                {
+                    for (int x = 0; x < req.width; x++)
+                    {
+                        textureData[(i * textureSize) + (i * textureSize) + x] = data[(y * textureSize) + x];
+                    }
+                }
+            }
+
+#if UNITY_EDITOR
+            if (collectDebugInfo)
+            {
+                for (int i = 0; i < textureData.Length; i++)
+                {
+                    float value = textureData[i];
+
+                    DensityTest densityTest = new DensityTest
+                    {
+                        valueID = value.ToString(),
+                        value = value,
+                        timesFound = 1,
+                    };
+
+                    if (!uniqueDensity.Contains(densityTest))
+                    {
+                        uniqueDensity.Add(densityTest);
+                    }
+
+                }
+            }
+#endif
 
             NativeArray<int> triangulationTable = new NativeArray<int>(CubeMarchTables.GetFlatTriangulationTable(), Allocator.TempJob);
             NativeArray<int> cornerIndexATable = new NativeArray<int>(CubeMarchTables.cornerIndexAFromEdge, Allocator.TempJob);
             NativeArray<int> cornerIndexBTable = new NativeArray<int>(CubeMarchTables.cornerIndexBFromEdge, Allocator.TempJob);
 
             int numCubePerAxis = planetAttributes.pointsPerAxis - 1;
-            NativeArray<int3> ids = new NativeArray<int3>(numCubePerAxis * numCubePerAxis * numCubePerAxis, Allocator.TempJob);
+            int numCubesPerChunk = numCubePerAxis * numCubePerAxis * numCubePerAxis;
+            NativeArray<int3> ids = new NativeArray<int3>(numCubesPerChunk, Allocator.TempJob);
             for (int x = 0; x < numCubePerAxis; x++)
             {
                 for (int y = 0; y < numCubePerAxis; y++)
@@ -186,27 +246,24 @@ namespace TerrainGeneration
                 }
             }
 
-            NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(50, Allocator.TempJob);
-            Debug.Log($"Triangles Capacity: {triangles.Capacity}");
+            NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(numCubesPerChunk * 5, Allocator.TempJob);
 
-            Debug.Log($"Texture Data Size: {textureData.Length}\n Texture Data Initial Size: {textureSize}\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {ids.Length}");
+            Debug.Log($"=== DEBUG INFO ===\nTexture Raw float Size: {textureData.Length}\n Texture Width/Height: {textureSize}\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {ids.Length}\n Triangles Capacity{triangles.Capacity}");
 
             float startTime = Time.realtimeSinceStartup;
             foreach (Chunk chunk in chunks)
             {
                 MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, ids,
                                                      triangulationTable, cornerIndexATable, cornerIndexBTable,
-                                                     textureData, textureSize, req.layerDataSize,
+                                                     textureData, textureSize, req.layerDataSize / 4,
                                                      triangles.AsParallelWriter());
                 JobHandle handler = marchJob.Schedule(ids.Length, 1);
                 handler.Complete();
 
-                Debug.Log($"Triangles Amount Before Chunk Build: {triangles.Length}");
-
-                chunk.CreateMesh(triangles.ToArray(), useFlatShading);
+                chunk.CreateMesh(triangles, useFlatShading);
                 triangles.Clear();
             }
-            Debug.Log($"Time Taken: {Time.time - startTime}ms");
+            Debug.Log($"Time Taken: {Time.realtimeSinceStartup - startTime}ms");
 
             textureData.Dispose();
             triangulationTable.Dispose();
