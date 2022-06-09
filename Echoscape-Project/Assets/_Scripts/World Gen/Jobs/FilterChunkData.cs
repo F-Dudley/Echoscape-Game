@@ -17,7 +17,7 @@ namespace TerrainGeneration
     }
 
     [BurstCompile]
-    public struct FilterChunkTriangles : IJob
+    public struct FilterChunkData : IJob
     {
         // Triangle Containers
         [ReadOnly] NativeList<ComputeStructs.Triangle> triangleList;
@@ -31,7 +31,7 @@ namespace TerrainGeneration
 
         [ReadOnly] FlatShadingConfig useFlatShading;
 
-        public FilterChunkTriangles(NativeList<Triangle> triangles,
+        public FilterChunkData(NativeList<Triangle> triangles,
                                     NativeList<float3> processedVertices, NativeList<float3> processedNormals, NativeList<int> processedTriangles,
                                     NativeHashMap<int2, int> vertexIndexMap, bool useFlatShading)
         {
@@ -45,8 +45,22 @@ namespace TerrainGeneration
             this.useFlatShading = useFlatShading ? FlatShadingConfig.USE_FLATSHADING : FlatShadingConfig.NO_FLATSHADING;
         }
 
+        public FilterChunkData(FilteredMeshData data, bool useFlatShading)
+        {
+            this.triangleList = data.triangleList;
+            this.processedVertices = data.processedVertices;
+            this.processedNormals = data.processedNormals;
+            this.processedTriangles = data.processedTriangles;
+
+            this.vertexIndexMap = data.vertexIndexMap;
+
+            this.useFlatShading = useFlatShading ? FlatShadingConfig.USE_FLATSHADING : FlatShadingConfig.NO_FLATSHADING;
+        }
+
         void IJob.Execute()
         {
+            if (triangleList.Length == 0) return;
+
             int triangleIndex = 0;
             for (int i = 0; i < triangleList.Length; i++)
             {

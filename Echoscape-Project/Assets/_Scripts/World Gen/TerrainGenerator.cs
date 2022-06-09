@@ -23,8 +23,6 @@ namespace TerrainGeneration
         [SerializeField] private RenderTexture densityTexture;
         [SerializeField] private ComputeShader densityShader;
 
-
-
         private int densityKernel;
 
         [Header("Mesh Settings")]
@@ -94,7 +92,6 @@ namespace TerrainGeneration
 
             textureSize = planetAttributes.numChunks * (planetAttributes.pointsPerAxis - 1) + 1;
             CreateTexture("Density Texture", textureSize, ref densityTexture);
-            Debug.Log("Density RenderTexture Size: " + (textureSize * textureSize * textureSize));
 
             densityShader.SetTexture(densityKernel, "DensityTexture", densityTexture);
 
@@ -182,6 +179,8 @@ namespace TerrainGeneration
                 yield break;
             }
 
+            Debug.Log($"=== TEXTURE DEBUG INFO ===\n Texture Raw float Size: {textureSize * textureSize * textureSize}\n Texture Width/Height: {textureSize}\n Texture Byte Layer Offset {req.layerDataSize}");
+
             NativeArray<float> textureData = new NativeArray<float>(textureSize * textureSize * textureSize, Allocator.TempJob);
             for (int z = 0; z < req.layerCount; z++)
             {
@@ -216,9 +215,6 @@ namespace TerrainGeneration
 
             NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(numCubesPerChunk * 5, Allocator.TempJob);
 
-            Debug.Log($"=== TEXTURE DEBUG INFO ===\n Texture Raw float Size: {textureData.Length}\n Texture Width/Height: {textureSize}\n Texture Byte Layer Offset {req.layerDataSize}");
-            Debug.Log($"=== TABLE DEBUG INFO ===\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {cubeIds.Length}\n Triangles Capacity{triangles.Capacity}");
-            
             float startTime = Time.realtimeSinceStartup;
             foreach (Chunk chunk in chunks)
             {
@@ -232,6 +228,8 @@ namespace TerrainGeneration
                 chunk.CreateMesh(triangles, useFlatShading);
                 triangles.Clear();
             }
+
+
             Debug.Log($"Time Taken: {Time.realtimeSinceStartup - startTime}s");
 
             textureData.Dispose();

@@ -62,7 +62,7 @@ namespace TerrainGeneration
         {
             if (triangles.Length == 0)
             {
-                Debug.Log("No Triangles Submitted");
+                Debug.Log("No Triangles Submitted", this.meshHolder);
                 return;
             }
 
@@ -71,14 +71,14 @@ namespace TerrainGeneration
             NativeList<float3> processedNormals = new NativeList<float3>(triangles.Length * 3, Allocator.TempJob);
             NativeList<int> processedTriangles = new NativeList<int>(triangles.Length * 3, Allocator.TempJob);
 
-            FilterChunkTriangles triangleFilterJob = new FilterChunkTriangles(triangles,
+            FilterChunkData triangleFilterJob = new FilterChunkData(triangles,
                                                                               processedVertices, processedNormals, processedTriangles,
                                                                               vertexIndexMap, useFlatShading);
             JobHandle handler = triangleFilterJob.Schedule();
             handler.Complete();
 
-            Debug.Log($"Triangle Amount: {processedTriangles.Length}");
-            Debug.Log($"Vertex Amount: {processedVertices.Length}");
+            //Debug.Log($"Triangle Amount: {processedTriangles.Length}");
+            //Debug.Log($"Vertex Amount: {processedVertices.Length}");
 
             mesh.Clear();
             mesh.SetVertices(processedVertices.AsArray());
