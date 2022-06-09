@@ -56,6 +56,12 @@ namespace TerrainGeneration
 
         [SerializeField] private List<DensityTest> uniqueDensity;
 
+        [Header("Gizmo Colours")]
+        [SerializeField] private Color terrainBounds_Col;
+        [SerializeField] private Color chunkBounds_Col;
+        [SerializeField] private Color chunkCentre_Col;
+
+
         #endif
 
         #region Unity Functions
@@ -77,17 +83,17 @@ namespace TerrainGeneration
 #if UNITY_EDITOR
 
         private void OnDrawGizmos()
-        {
+        {   
+            Gizmos.color = terrainBounds_Col;
+            Gizmos.DrawWireCube(Vector3.zero, (Vector3.one * planetAttributes.terrainSize));
+            
             foreach (Chunk chunk in chunks)
             {
-                Gizmos.color = Color.yellow;
+                Gizmos.color = chunkCentre_Col;
                 Gizmos.DrawSphere(chunk.attributes.centre, 3f);
 
-                Gizmos.color = Color.white;
+                Gizmos.color = chunkBounds_Col;
                 Gizmos.DrawWireCube(chunk.attributes.centre, (Vector3.one * chunk.attributes.size));
-            
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireCube(Vector3.zero, (Vector3.one * planetAttributes.terrainSize));
             }
         }
 
@@ -156,15 +162,17 @@ namespace TerrainGeneration
             int i = 0;
             float centreX, centreY, centreZ;
 
+            float terrainOriginOffset = planetAttributes.terrainSize / 2;
+
             for (int x = 0; x < planetAttributes.numChunks; x++)
             {
                 for (int y = 0; y < planetAttributes.numChunks; y++)
                 {
                     for (int z = 0; z < planetAttributes.numChunks; z++)
                     {
-                        centreX = (-(planetAttributes.numChunks - 1f) / 2 + x) * planetAttributes.terrainSize;
-                        centreY = (-(planetAttributes.numChunks - 1f) / 2 + y) * planetAttributes.terrainSize;
-                        centreZ = (-(planetAttributes.numChunks - 1f) / 2 + z) * planetAttributes.terrainSize;
+                        centreX = (x * chunkSize) + (chunkSize / 2) - terrainOriginOffset;
+                        centreY = (y * chunkSize) + (chunkSize / 2) - terrainOriginOffset;
+                        centreZ = (z * chunkSize) + (chunkSize / 2) - terrainOriginOffset;
                         
                         GameObject chunkGameObject = new GameObject($"Chunk ({x}-{y}-{z})");
                         chunkGameObject.layer = chunkHolder.gameObject.layer;
@@ -192,15 +200,15 @@ namespace TerrainGeneration
 
             NativeArray<float> textureData = new NativeArray<float>(textureSize * textureSize * textureSize, Allocator.TempJob);
             Debug.Log($"Requested Data: ({req.width}, {req.height}, {req.layerCount})\nTotal Req Data Size: {req.width * req.height * req.layerCount}");
-            for (int i = 0; i < req.layerCount; i++)
+            for (int z = 0; z < req.layerCount; z++)
             {
-                NativeArray<float> data = req.GetData<float>(i);
+                NativeArray<float> data = req.GetData<float>(z);
 
                 for (int y = 0; y < req.height; y++)
                 {
                     for (int x = 0; x < req.width; x++)
                     {
-                        textureData[(i * textureSize) + (i * textureSize) + x] = data[(y * textureSize) + x];
+                        textureData[(z * (textureSize * textureSize)) + (y * textureSize) + x] = data[(y * textureSize) + x];
                     }
                 }
             }
@@ -234,42 +242,43 @@ namespace TerrainGeneration
 
             int numCubePerAxis = planetAttributes.pointsPerAxis - 1;
             int numCubesPerChunk = numCubePerAxis * numCubePerAxis * numCubePerAxis;
-            NativeArray<int3> ids = new NativeArray<int3>(numCubesPerChunk, Allocator.TempJob);
+            NativeArray<float3> cubeIds = new NativeArray<float3>(numCubesPerChunk, Allocator.TempJob);
             for (int x = 0; x < numCubePerAxis; x++)
             {
                 for (int y = 0; y < numCubePerAxis; y++)
                 {
                     for (int z = 0; z < numCubePerAxis; z++)
                     {
-                        ids[(z * numCubePerAxis) + (y * numCubePerAxis) + x] = new int3(x, y, z);
+                        cubeIds[(z * numCubePerAxis) + (y * numCubePerAxis) + x] = new float3(x, y, z);
                     }
                 }
             }
 
             NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(numCubesPerChunk * 5, Allocator.TempJob);
 
-            Debug.Log($"=== DEBUG INFO ===\nTexture Raw float Size: {textureData.Length}\n Texture Width/Height: {textureSize}\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {ids.Length}\n Triangles Capacity{triangles.Capacity}");
-
+            Debug.Log($"=== TEXTURE DEBUG INFO ===\n Texture Raw float Size: {textureData.Length}\n Texture Width/Height: {textureSize}\n Texture Byte Layer Offset {req.layerDataSize}");
+            Debug.Log($"=== TABLE DEBUG INFO ===\n Triangulation Table Size: {triangulationTable.Length}\n Ids Table Size: {cubeIds.Length}\n Triangles Capacity{triangles.Capacity}");
+            
             float startTime = Time.realtimeSinceStartup;
             foreach (Chunk chunk in chunks)
             {
-                MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, ids,
+                MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, cubeIds,
                                                      triangulationTable, cornerIndexATable, cornerIndexBTable,
-                                                     textureData, textureSize, req.layerDataSize / 4,
+                                                     textureData, textureSize,
                                                      triangles.AsParallelWriter());
-                JobHandle handler = marchJob.Schedule(ids.Length, 1);
+                JobHandle handler = marchJob.Schedule(cubeIds.Length, 1);
                 handler.Complete();
 
                 chunk.CreateMesh(triangles, useFlatShading);
                 triangles.Clear();
             }
-            Debug.Log($"Time Taken: {Time.realtimeSinceStartup - startTime}ms");
+            Debug.Log($"Time Taken: {Time.realtimeSinceStartup - startTime}s");
 
             textureData.Dispose();
             triangulationTable.Dispose();
             cornerIndexATable.Dispose();
             cornerIndexBTable.Dispose();
-            ids.Dispose();
+            cubeIds.Dispose();
             triangles.Dispose();
 
             GenerateSceneProps();

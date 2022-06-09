@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14f9cf404d29cbe4cb7b1146c3fbb534, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateSpeed: {x: 20, y: 10}
+  rotateSpeed: {x: 10, y: 5}
 --- !u!4 &49841503
 Transform:
   m_ObjectHideFlags: 0
@@ -614,19 +614,22 @@ MonoBehaviour:
     terrainSize: 300
     numChunks: 5
     pointsPerAxis: 20
-    isoLevel: 0.5
+    isoLevel: 0
     noiseScale: 0.2
-    noiseHeightMultiplier: 0.05
+    noiseHeightMultiplier: 0.04
   chunks: []
   chunkHolder: {fileID: 219123965}
   textureSize: 0
   densityTexture: {fileID: 0}
   densityShader: {fileID: 7200000, guid: df4e6b8bfdf154e41b3700d99d888848, type: 3}
   meshMaterial: {fileID: 2100000, guid: eac2f4d651c214940aebffc71a2fa4fc, type: 2}
-  useFlatShading: 1
-  drawDebug: 1
+  useFlatShading: 0
+  drawDebug: 0
   collectDebugInfo: 0
   uniqueDensity: []
+  terrainBounds_Col: {r: 1, g: 0, b: 0, a: 0.2509804}
+  chunkBounds_Col: {r: 0.74571294, g: 0.754717, b: 0, a: 0.11764706}
+  chunkCentre_Col: {r: 0.20426168, g: 0.1769313, b: 0.5283019, a: 0.19607843}
 --- !u!4 &1524804996
 Transform:
   m_ObjectHideFlags: 0
@@ -760,6 +763,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b972d97c9643c6409af354ee991547b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sliceDepth: 0.404
+  sliceDepth: 0
   material: {fileID: 2100000, guid: 0b5e65be11e0cf24695be0e823268d5e, type: 2}
   generator: {fileID: 1524804995}

@@ -8,14 +8,28 @@ namespace TerrainGeneration
     [System.Serializable]
     public struct PlanetAttributes
     {
+        [Tooltip("Planets Overall Size")]
         public int terrainSize;
-        public int numChunks;        
+
+        [Tooltip("Amount of Chunks the Terrain is divided into")]
+        [Range(0, 50)]
+        public int numChunks;
+
+        [Tooltip("Vertex Points Per Axis")]
         public int pointsPerAxis;
+
+        [Range(0, 1)]
+        [Tooltip("How Isometric the Terrain is")]
         public float isoLevel;        
 
         [Space]
 
+        [Range(0.01f, 2f)]
+        [Tooltip("Scale of the Noise Overall")]
         public float noiseScale;
+
+        [Range(0.01f, 2f)]
+        [Tooltip("Scale of the Noises Height")]
         public float noiseHeightMultiplier;
 
         public PlanetAttributes(int terrainSize, int numChunks, int pointsPerAxis, float isoLevel, float noiseHeightMultiplier, float noiseScale)

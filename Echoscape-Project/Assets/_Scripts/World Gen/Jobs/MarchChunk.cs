@@ -44,23 +44,22 @@ namespace TerrainGeneration
         // Density Texture
         [ReadOnly] NativeArray<float> textureData;
         [ReadOnly] int textureSize;
-        [ReadOnly] int textureLayerOffset;
 
         // Other
-        [ReadOnly] NativeArray<int3> ids;
+        [ReadOnly] NativeArray<float3> cubeIds;
 
         // Outputs
         NativeList<Triangle>.ParallelWriter triangles;
 
         public MarchChunk(PlanetAttributes planetAttributes, ChunkAttributes chunkAttributes,
-                          NativeArray<int3> ids,
+                          NativeArray<float3> cubeIds,
                           NativeArray<int> triangulationTable, NativeArray<int> cornerIndexATable, NativeArray<int> cornerIndexBTable,
-                          NativeArray<float> textureData, int textureSize, int textureLayerOffset,
+                          NativeArray<float> textureData, int textureSize,
                           NativeList<Triangle>.ParallelWriter trianlgesWriter)
         {
             this.planetAttributes = planetAttributes;
             this.chunkAttributes = chunkAttributes;
-            this.ids = ids;
+            this.cubeIds = cubeIds;
 
             this.triangulationTable = triangulationTable;
             this.cornerIndexAFromEdge = cornerIndexATable;
@@ -68,7 +67,6 @@ namespace TerrainGeneration
 
             this.textureData = textureData;
             this.textureSize = textureSize;
-            this.textureLayerOffset = textureLayerOffset;
 
             this.triangles = trianlgesWriter;
         }
@@ -76,10 +74,10 @@ namespace TerrainGeneration
         public void Execute(int index)
         {
             int numCubesPerAxis = planetAttributes.pointsPerAxis - 1;
-            int3 coord = ids[index] + chunkAttributes.GetChunkCoord(numCubesPerAxis);
+            float3 coord = cubeIds[index] + chunkAttributes.GetChunkCoord(numCubesPerAxis);
 
             // Calculate Coords of Current Cubes Corners
-            NativeArray<int3> cornerCoords = new NativeArray<int3>(8, Allocator.Temp);
+            NativeArray<float3> cornerCoords = new NativeArray<float3>(8, Allocator.Temp);
             cornerCoords[0] = coord + (new int3(0, 0, 0));
             cornerCoords[1] = coord + (new int3(1, 0, 0));
             cornerCoords[2] = coord + (new int3(1, 0, 1));
@@ -140,7 +138,7 @@ namespace TerrainGeneration
         }
 
         #region Marching Helpers
-        Vertex CreateVertex(int3 coordA, int3 coordB)
+        Vertex CreateVertex(float3 coordA, float3 coordB)
         {
             float3 posA = CoordToWorld(coordA);
             float3 posB = CoordToWorld(coordB);
@@ -170,7 +168,7 @@ namespace TerrainGeneration
             };
         }
 
-        float3 CalculateNormal(int3 coord)
+        float3 CalculateNormal(float3 coord)
         {
             int3 offsetX = new int3(1, 0, 0);
             int3 offsetY = new int3(0, 1, 0);
@@ -179,7 +177,7 @@ namespace TerrainGeneration
             float dx = SampleDensity(coord + offsetX) - SampleDensity(coord - offsetX);
             float dy = SampleDensity(coord + offsetY) - SampleDensity(coord - offsetY);
             float dz = SampleDensity(coord + offsetZ) - SampleDensity(coord - offsetZ);
-
+            
             return math.normalize(new float3(dx, dy, dz));
         }
         #endregion
@@ -190,20 +188,20 @@ namespace TerrainGeneration
             return (coord / (textureSize - 1.0f) - 0.5f) * planetAttributes.terrainSize;
         }
 
-        int IndexFromCoord(int3 coord)
+        int IndexFromCoord(float3 coord)
         {
-            coord = coord - chunkAttributes.GetChunkCoord(planetAttributes.pointsPerAxis - 1);
+            float3 newCoord = coord - chunkAttributes.GetChunkCoord(planetAttributes.pointsPerAxis - 1);
 
-            return coord.z * planetAttributes.pointsPerAxis + planetAttributes.pointsPerAxis + coord.y * planetAttributes.pointsPerAxis + coord.x;
+            return (int) math.round(newCoord.z * planetAttributes.pointsPerAxis + planetAttributes.pointsPerAxis + newCoord.y * planetAttributes.pointsPerAxis + newCoord.x);
         }
         #endregion
 
         #region Texture Helpers
-        private float SampleDensity(int3 coord)
+        private float SampleDensity(float3 coord)
         {
-            coord = math.max(0, math.min(coord, textureSize));
+            float3 newCoord =  math.max(0, math.min(coord, textureSize));
 
-            return textureData[(coord.z * textureSize) + (coord.y * textureSize) + coord.x];
+            return textureData[(int) math.round((newCoord.z * (textureSize * textureSize)) + (newCoord.y * textureSize) + newCoord.x)];
         }
         #endregion
     }

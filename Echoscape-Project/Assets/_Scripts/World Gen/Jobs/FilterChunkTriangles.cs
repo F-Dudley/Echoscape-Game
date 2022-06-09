@@ -47,7 +47,6 @@ namespace TerrainGeneration
 
         void IJob.Execute()
         {
-
             int triangleIndex = 0;
             for (int i = 0; i < triangleList.Length; i++)
             {
@@ -61,6 +60,7 @@ namespace TerrainGeneration
 
         private void ProcessVertex(Vertex vertex, ref int triangleIndex)
         {
+            /*
             if (!usingFlatShading() && vertexIndexMap.TryGetValue(vertex.id, out int sharedVertexIndex))
             {
                 processedTriangles[triangleIndex] = sharedVertexIndex;
@@ -70,13 +70,13 @@ namespace TerrainGeneration
                 if (!usingFlatShading())
                 {
                     vertexIndexMap.TryAdd(vertex.id, triangleIndex);
-                }
+                }*/
 
                 processedVertices.Add(vertex.position);
                 processedNormals.Add(vertex.normal);
                 processedTriangles.Add(triangleIndex);
                 triangleIndex++;
-            }
+            //}
         }
 
         private bool usingFlatShading() => useFlatShading == FlatShadingConfig.USE_FLATSHADING;
