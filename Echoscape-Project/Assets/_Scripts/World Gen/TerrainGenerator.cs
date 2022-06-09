@@ -10,21 +10,6 @@ using System.Linq;
 
 namespace TerrainGeneration
 {
-    [System.Serializable]
-    public struct DensityTest : System.IComparable<DensityTest>
-    {
-        public string valueID;
-        public float value;
-
-        public int timesFound;
-
-        public int CompareTo(DensityTest obj)
-        {
-            if (obj.valueID == valueID && obj.value == value) return 1;
-            else return 0;
-        }
-    }
-
     public class TerrainGenerator : MonoBehaviour
     {
 
@@ -52,9 +37,6 @@ namespace TerrainGeneration
 
         [Header("Debug")]
         [SerializeField] private bool drawDebug = false;
-        [SerializeField] private bool collectDebugInfo = false;
-
-        [SerializeField] private List<DensityTest> uniqueDensity;
 
         [Header("Gizmo Colours")]
         [SerializeField] private Color terrainBounds_Col;
@@ -83,7 +65,9 @@ namespace TerrainGeneration
 #if UNITY_EDITOR
 
         private void OnDrawGizmos()
-        {   
+        {
+            if (!drawDebug) return;
+
             Gizmos.color = terrainBounds_Col;
             Gizmos.DrawWireCube(Vector3.zero, (Vector3.one * planetAttributes.terrainSize));
             
@@ -199,7 +183,6 @@ namespace TerrainGeneration
             }
 
             NativeArray<float> textureData = new NativeArray<float>(textureSize * textureSize * textureSize, Allocator.TempJob);
-            Debug.Log($"Requested Data: ({req.width}, {req.height}, {req.layerCount})\nTotal Req Data Size: {req.width * req.height * req.layerCount}");
             for (int z = 0; z < req.layerCount; z++)
             {
                 NativeArray<float> data = req.GetData<float>(z);
@@ -212,29 +195,6 @@ namespace TerrainGeneration
                     }
                 }
             }
-
-#if UNITY_EDITOR
-            if (collectDebugInfo)
-            {
-                for (int i = 0; i < textureData.Length; i++)
-                {
-                    float value = textureData[i];
-
-                    DensityTest densityTest = new DensityTest
-                    {
-                        valueID = value.ToString(),
-                        value = value,
-                        timesFound = 1,
-                    };
-
-                    if (!uniqueDensity.Contains(densityTest))
-                    {
-                        uniqueDensity.Add(densityTest);
-                    }
-
-                }
-            }
-#endif
 
             NativeArray<int> triangulationTable = new NativeArray<int>(CubeMarchTables.GetFlatTriangulationTable(), Allocator.TempJob);
             NativeArray<int> cornerIndexATable = new NativeArray<int>(CubeMarchTables.cornerIndexAFromEdge, Allocator.TempJob);
