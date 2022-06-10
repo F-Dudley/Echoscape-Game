@@ -615,18 +615,17 @@ MonoBehaviour:
     numChunks: 5
     pointsPerAxis: 20
     isoLevel: 0
-    noiseScale: 0.2
-    noiseHeightMultiplier: 0.04
+    noiseScale: 0.4
+    noiseHeightMultiplier: 0.02
   chunks: []
   chunkHolder: {fileID: 219123965}
+  bufferAmount: 30
   textureSize: 0
   densityTexture: {fileID: 0}
   densityShader: {fileID: 7200000, guid: df4e6b8bfdf154e41b3700d99d888848, type: 3}
   meshMaterial: {fileID: 2100000, guid: eac2f4d651c214940aebffc71a2fa4fc, type: 2}
   useFlatShading: 0
   drawDebug: 0
-  collectDebugInfo: 0
-  uniqueDensity: []
   terrainBounds_Col: {r: 1, g: 0, b: 0, a: 0.2509804}
   chunkBounds_Col: {r: 0.74571294, g: 0.754717, b: 0, a: 0.11764706}
   chunkCentre_Col: {r: 0.20426168, g: 0.1769313, b: 0.5283019, a: 0.19607843}

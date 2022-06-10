@@ -19,6 +19,8 @@ namespace TerrainGeneration
         [SerializeField] private Transform chunkHolder;
 
         [Header("Density Texture")]
+        [Range(1, 100)]
+        [SerializeField] private int bufferAmount;
         [SerializeField] private int textureSize;
         [SerializeField] private RenderTexture densityTexture;
         [SerializeField] private ComputeShader densityShader;
@@ -91,6 +93,7 @@ namespace TerrainGeneration
             densityKernel = densityShader.FindKernel("CSMain");
 
             textureSize = planetAttributes.numChunks * (planetAttributes.pointsPerAxis - 1) + 1;
+
             CreateTexture("Density Texture", textureSize, ref densityTexture);
 
             densityShader.SetTexture(densityKernel, "DensityTexture", densityTexture);
@@ -208,7 +211,7 @@ namespace TerrainGeneration
                 {
                     for (int z = 0; z < numCubePerAxis; z++)
                     {
-                        cubeIds[(z * numCubePerAxis) + (y * numCubePerAxis) + x] = new float3(x, y, z);
+                        cubeIds[(z * (numCubePerAxis* numCubePerAxis)) + (y * numCubePerAxis) + x] = new float3(x, y, z);
                     }
                 }
             }
@@ -225,7 +228,7 @@ namespace TerrainGeneration
                 JobHandle handler = marchJob.Schedule(cubeIds.Length, 1);
                 handler.Complete();
 
-                chunk.CreateMesh(triangles, useFlatShading);
+                chunk.CreateMesh(triangles.ToArray(), useFlatShading);
                 triangles.Clear();
             }
 

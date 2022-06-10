@@ -58,6 +58,86 @@ namespace TerrainGeneration
             meshCollider = meshRenderer.gameObject.AddComponent<MeshCollider>();
         }
 
+        public void CreateMesh(Triangle[] triangles, bool useFlatShading)
+        {
+            Dictionary<int2, int> vertexIndexMap = new Dictionary<int2, int>();
+            List<Vector3> processedVertices = new List<Vector3>();
+            List<Vector3> processedNormals = new List<Vector3>();
+            List<int> processedTriangles = new List<int>();
+
+            int vertexNum = triangles.Length * 3;
+            int triIndex = 0;
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                Triangle triangle = triangles[i];
+
+                Vertex v0 = triangle.vertexA;
+                Vertex v1 = triangle.vertexB;
+                Vertex v2 = triangle.vertexC;
+
+                // v0
+                int sharedVertexIndex;
+                if (!useFlatShading && vertexIndexMap.TryGetValue(v0.id, out sharedVertexIndex))
+                {
+                    processedTriangles.Add(sharedVertexIndex);
+                }
+                else
+                {
+                    if (!useFlatShading)
+                    {
+                        vertexIndexMap.Add(v0.id, triIndex);
+                    }
+                    processedVertices.Add(v0.position);
+                    processedNormals.Add(v0.normal);
+                    processedTriangles.Add(triIndex);
+                    triIndex++;
+                }
+
+                // v1
+                if (!useFlatShading && vertexIndexMap.TryGetValue(v1.id, out sharedVertexIndex))
+                {
+                    processedTriangles.Add(sharedVertexIndex);
+                }
+                else
+                {
+                    if (!useFlatShading)
+                    {
+                        vertexIndexMap.Add(v1.id, triIndex);
+                    }
+                    processedVertices.Add(v1.position);
+                    processedNormals.Add(v1.normal);
+                    processedTriangles.Add(triIndex);
+                    triIndex++;
+                }
+
+                // v2
+                if (!useFlatShading && vertexIndexMap.TryGetValue(v2.id, out sharedVertexIndex))
+                {
+                    processedTriangles.Add(sharedVertexIndex);
+                }
+                else
+                {
+                    if (!useFlatShading)
+                    {
+                        vertexIndexMap.Add(v2.id, triIndex);
+                    }
+                    processedVertices.Add(v2.position);
+                    processedNormals.Add(v2.normal);
+                    processedTriangles.Add(triIndex);
+                    triIndex++;
+                }
+            }
+
+            mesh.Clear();
+            mesh.SetVertices(processedVertices);
+            mesh.SetTriangles(processedTriangles, 0, true);
+
+            if (useFlatShading) mesh.RecalculateNormals();
+            else mesh.SetNormals(processedNormals);
+
+            meshCollider.sharedMesh = mesh;
+        }
+
         public void CreateMesh(NativeList<Triangle> triangles, bool useFlatShading)
         {
             if (triangles.Length == 0)

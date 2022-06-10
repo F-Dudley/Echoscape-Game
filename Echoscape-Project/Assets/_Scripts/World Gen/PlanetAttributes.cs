@@ -9,10 +9,11 @@ namespace TerrainGeneration
     public struct PlanetAttributes
     {
         [Tooltip("Planets Overall Size")]
+        [Range(1, 1000)]
         public int terrainSize;
 
         [Tooltip("Amount of Chunks the Terrain is divided into")]
-        [Range(0, 50)]
+        [Range(1, 50)]
         public int numChunks;
 
         [Tooltip("Vertex Points Per Axis")]

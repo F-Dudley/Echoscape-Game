@@ -131,7 +131,6 @@ namespace TerrainGeneration
                     vertexC = vC,
                 };
                 triangles.AddNoResize(triangle);
-                //Debug.Log("Adding Triangle"); // Have To Turn of Burst Compilation to View Debug Messages - Takes a lot longer also.
             }
 
             cornerCoords.Dispose();
@@ -156,7 +155,7 @@ namespace TerrainGeneration
             float3 normal = math.normalize(normalA + t * (normalB - normalA));
 
             // ID
-            int indexA = IndexFromCoord(coordA);
+            int indexA = IndexFromCoord(coordA); 
             int indexB = IndexFromCoord(coordB);
 
             // Create Vertex
@@ -192,7 +191,11 @@ namespace TerrainGeneration
         {
             float3 newCoord = coord - chunkAttributes.GetChunkCoord(planetAttributes.pointsPerAxis - 1);
 
-            return (int) math.round(newCoord.z * planetAttributes.pointsPerAxis + planetAttributes.pointsPerAxis + newCoord.y * planetAttributes.pointsPerAxis + newCoord.x);
+            float x = newCoord.x;
+            float y = newCoord.y * planetAttributes.pointsPerAxis;
+            float z = newCoord.z * math.pow(planetAttributes.pointsPerAxis, 2);
+
+            return (int) math.round(x + y + z);
         }
         #endregion
 
@@ -201,7 +204,11 @@ namespace TerrainGeneration
         {
             float3 newCoord =  math.max(0, math.min(coord, textureSize));
 
-            return textureData[(int) math.round((newCoord.z * (textureSize * textureSize)) + (newCoord.y * textureSize) + newCoord.x)];
+            float x = newCoord.x;
+            float y = newCoord.y * textureSize;
+            float z = newCoord.z * math.pow(textureSize, 2);
+
+            return textureData[(int) (x + y + z)];
         }
         #endregion
     }
