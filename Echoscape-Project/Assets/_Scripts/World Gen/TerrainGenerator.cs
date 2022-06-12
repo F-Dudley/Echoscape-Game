@@ -11,13 +11,22 @@ using System.Linq;
 
 namespace TerrainGeneration
 {
-    #if UNITY_EDITOR
+    #if DEBUG
+    [System.Serializable]
     public struct GenTimes
     {
         public float textureGenTime;
         public float effectInitTime;
         public float chunkCreationTime;
         public float cubeMarchTime;
+        public float propGenTime;
+
+        public float wholeGenTime;
+
+        public void DebugToConsole()
+        {
+            Debug.Log($"=== PROCESS TIMES ===\nTexture Time: {textureGenTime}s\nEffect Init: {effectInitTime}s\nChunk Creation: {chunkCreationTime}s\nCube Marching: {cubeMarchTime}s\nWhole Process: {wholeGenTime}s");
+        }
     }
     #endif
 
@@ -37,13 +46,14 @@ namespace TerrainGeneration
         private int densityKernel;
 
         [Header("Mesh Settings")]
+        [SerializeField] private Gradient meshGradient;
         [SerializeField] private Material meshMaterial;
+        [SerializeField] private Shader meshShader;
         [SerializeField] private VisualEffectAsset meshVFXAsset;
 
         private Coroutine meshCreation;
 
-#if UNITY_EDITOR
-
+        #if DEBUG
         [Header("Debug")]
         [SerializeField] private bool drawDebug = false;
 
@@ -58,25 +68,26 @@ namespace TerrainGeneration
         #endif
 
         #region Unity Functions
+
+#if DEBUG
         private void Start()
         {
             wholeProcessStartTime = Time.realtimeSinceStartup;
 
             // Create Needed Textures
-            float textureGenTime = Time.realtimeSinceStartup;
+            float individualProcessTime = Time.realtimeSinceStartup;
             InitTextures();
-            Debug.Log($"Texture Gen Time: {textureGenTime}s");
-
+            genTimes.textureGenTime = Time.realtimeSinceStartup - individualProcessTime;
 
             // Initialize Shader
-            float effectsInitTime = Time.realtimeSinceStartup;
+            individualProcessTime = Time.realtimeSinceStartup;
             InitializeEffects();
-            Debug.Log($"Effects Init Time: {Time.realtimeSinceStartup - effectsInitTime}");
+            genTimes.effectInitTime = Time.realtimeSinceStartup - individualProcessTime;
 
             // Terrain Generation w/ Cube Marching
-            float chunkCreationTime = Time.realtimeSinceStartup;
+            individualProcessTime = Time.realtimeSinceStartup;
             CreateChunks();
-            Debug.Log($"Chunk Creation Time: {Time.realtimeSinceStartup - chunkCreationTime}");
+            genTimes.chunkCreationTime = Time.realtimeSinceStartup - individualProcessTime;
 
             // Request Density Texture From GPU
             AsyncGPUReadbackRequest request = AsyncGPUReadback.Request(densityTexture);
@@ -85,15 +96,13 @@ namespace TerrainGeneration
             meshCreation = StartCoroutine(GenerateTerrain(request));
         }
 
-#if UNITY_EDITOR
-
         private void OnDrawGizmos()
         {
             if (!drawDebug) return;
 
             Gizmos.color = terrainBounds_Col;
             Gizmos.DrawWireCube(Vector3.zero, (Vector3.one * planetAttributes.terrainSize));
-            
+
             foreach (Chunk chunk in chunks)
             {
                 Gizmos.color = chunkCentre_Col;
@@ -103,7 +112,23 @@ namespace TerrainGeneration
                 Gizmos.DrawWireCube(chunk.attributes.centre, (Vector3.one * chunk.attributes.size));
             }
         }
+#else
+        private void Start()
+        {
+            InitTextures();
 
+            // Initialize Shader
+            InitializeEffects();
+
+            // Terrain Generation w/ Cube Marching
+            CreateChunks();
+
+            // Request Density Texture From GPU
+            AsyncGPUReadbackRequest request = AsyncGPUReadback.Request(densityTexture);
+
+            // Terrain Generation For Each Chunk, Contained in Coroutine.
+            meshCreation = StartCoroutine(GenerateTerrain(request));
+        }
 #endif
 
         #endregion
@@ -158,13 +183,11 @@ namespace TerrainGeneration
             texture.filterMode = FilterMode.Bilinear;
             texture.name = name;
         }
-        #endregion
+#endregion
 
-        #region Terrain Generation
+#region Terrain Generation
         private void InitializeEffects()
         {
-            meshMaterial.SetFloat("ElevationMin", 0);
-            meshMaterial.SetFloat("ElevationMax", planetAttributes.terrainSize);
             meshMaterial.SetVector("PlanetCentre", chunkHolder.position);
         }
 
@@ -248,7 +271,10 @@ namespace TerrainGeneration
 
             NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(numCubesPerChunk * 5, Allocator.TempJob);
 
-            float cubeMarchTime = Time.realtimeSinceStartup;
+#if DEBUG
+            float individualProcessTime = Time.realtimeSinceStartup;
+#endif
+
             foreach (Chunk chunk in chunks)
             {
                 MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, cubeIds,
@@ -261,7 +287,10 @@ namespace TerrainGeneration
                 chunk.CreateMesh(triangles.ToArray(), useFlatShading);
                 triangles.Clear();
             }
-            Debug.Log($"Cube March Process Time: {Time.realtimeSinceStartup - cubeMarchTime}s");
+
+#if DEBUG
+            genTimes.cubeMarchTime = Time.realtimeSinceStartup - individualProcessTime;
+#endif
 
             textureData.Dispose();
             triangulationTable.Dispose();
@@ -270,11 +299,17 @@ namespace TerrainGeneration
             cubeIds.Dispose();
             triangles.Dispose();
 
-            float scenePropsTime = Time.realtimeSinceStartup;
+#if DEBUG
+            individualProcessTime = Time.realtimeSinceStartup;
             GenerateSceneProps();
-            Debug.Log($"Scene Props Time: {Time.realtimeSinceStartup - scenePropsTime}s");
+            genTimes.effectInitTime = Time.realtimeSinceStartup - individualProcessTime;
 
-            Debug.Log($"Whole Gen Process Time: {Time.realtimeSinceStartup - wholeProcessStartTime}s");
+            genTimes.wholeGenTime = Time.realtimeSinceStartup - wholeProcessStartTime;
+
+            genTimes.DebugToConsole();
+#else
+            GenerateSceneProps();
+#endif
         }
         #endregion
 
@@ -283,9 +318,9 @@ namespace TerrainGeneration
         {
 
         }
-        #endregion
+#endregion
 
-        #region Helpers
+#region Helpers
         private void DispatchShader(ComputeShader shader, int iterationsX, int iterationsY = 1, int iterationsZ = 1, int kernel = 0)
         {
             uint x, y, z;
@@ -298,6 +333,6 @@ namespace TerrainGeneration
 
             shader.Dispatch(kernel, numGroupsX, numGroupsY, numGroupsZ);
         }
-        #endregion
+#endregion
     }
 }
