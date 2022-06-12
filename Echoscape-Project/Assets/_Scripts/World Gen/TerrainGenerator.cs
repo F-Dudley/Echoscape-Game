@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.VFX;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -10,18 +11,26 @@ using System.Linq;
 
 namespace TerrainGeneration
 {
+    #if UNITY_EDITOR
+    public struct GenTimes
+    {
+        public float textureGenTime;
+        public float effectInitTime;
+        public float chunkCreationTime;
+        public float cubeMarchTime;
+    }
+    #endif
+
     public class TerrainGenerator : MonoBehaviour
     {
-
         [Header("Terrain Settings")]
         [SerializeField] private PlanetAttributes planetAttributes;
+        [SerializeField] private bool useFlatShading = true;
         [SerializeField] private Chunk[] chunks;
         [SerializeField] private Transform chunkHolder;
 
         [Header("Density Texture")]
-        [Range(1, 100)]
-        [SerializeField] private int bufferAmount;
-        [SerializeField] private int textureSize;
+        private int textureSize;
         [SerializeField] private RenderTexture densityTexture;
         [SerializeField] private ComputeShader densityShader;
 
@@ -29,7 +38,7 @@ namespace TerrainGeneration
 
         [Header("Mesh Settings")]
         [SerializeField] private Material meshMaterial;
-        [SerializeField] private bool useFlatShading = true;
+        [SerializeField] private VisualEffectAsset meshVFXAsset;
 
         private Coroutine meshCreation;
 
@@ -38,22 +47,36 @@ namespace TerrainGeneration
         [Header("Debug")]
         [SerializeField] private bool drawDebug = false;
 
+        [SerializeField] private GenTimes genTimes;
+
         [Header("Gizmo Colours")]
         [SerializeField] private Color terrainBounds_Col;
         [SerializeField] private Color chunkBounds_Col;
         [SerializeField] private Color chunkCentre_Col;
 
-
+        private float wholeProcessStartTime = 0.0f;
         #endif
 
         #region Unity Functions
         private void Start()
         {
+            wholeProcessStartTime = Time.realtimeSinceStartup;
+
             // Create Needed Textures
+            float textureGenTime = Time.realtimeSinceStartup;
             InitTextures();
+            Debug.Log($"Texture Gen Time: {textureGenTime}s");
+
+
+            // Initialize Shader
+            float effectsInitTime = Time.realtimeSinceStartup;
+            InitializeEffects();
+            Debug.Log($"Effects Init Time: {Time.realtimeSinceStartup - effectsInitTime}");
 
             // Terrain Generation w/ Cube Marching
+            float chunkCreationTime = Time.realtimeSinceStartup;
             CreateChunks();
+            Debug.Log($"Chunk Creation Time: {Time.realtimeSinceStartup - chunkCreationTime}");
 
             // Request Density Texture From GPU
             AsyncGPUReadbackRequest request = AsyncGPUReadback.Request(densityTexture);
@@ -138,6 +161,13 @@ namespace TerrainGeneration
         #endregion
 
         #region Terrain Generation
+        private void InitializeEffects()
+        {
+            meshMaterial.SetFloat("ElevationMin", 0);
+            meshMaterial.SetFloat("ElevationMax", planetAttributes.terrainSize);
+            meshMaterial.SetVector("PlanetCentre", chunkHolder.position);
+        }
+
         private void CreateChunks()
         {
             chunks = new Chunk[planetAttributes.numChunks * planetAttributes.numChunks * planetAttributes.numChunks];
@@ -165,7 +195,7 @@ namespace TerrainGeneration
                         int3 id = new int3(x, y, z);
                         float3 centre = new float3(centreX, centreY, centreZ);
 
-                        chunks[i] = new Chunk(id, centre, chunkSize, meshMaterial, chunkGameObject);
+                        chunks[i] = new Chunk(id, centre, chunkSize, meshMaterial, meshVFXAsset, chunkGameObject);
 
                         i++;
                     }
@@ -218,7 +248,7 @@ namespace TerrainGeneration
 
             NativeList<ComputeStructs.Triangle> triangles = new NativeList<ComputeStructs.Triangle>(numCubesPerChunk * 5, Allocator.TempJob);
 
-            float startTime = Time.realtimeSinceStartup;
+            float cubeMarchTime = Time.realtimeSinceStartup;
             foreach (Chunk chunk in chunks)
             {
                 MarchChunk marchJob = new MarchChunk(planetAttributes, chunk.attributes, cubeIds,
@@ -231,9 +261,7 @@ namespace TerrainGeneration
                 chunk.CreateMesh(triangles.ToArray(), useFlatShading);
                 triangles.Clear();
             }
-
-
-            Debug.Log($"Time Taken: {Time.realtimeSinceStartup - startTime}s");
+            Debug.Log($"Cube March Process Time: {Time.realtimeSinceStartup - cubeMarchTime}s");
 
             textureData.Dispose();
             triangulationTable.Dispose();
@@ -242,7 +270,11 @@ namespace TerrainGeneration
             cubeIds.Dispose();
             triangles.Dispose();
 
+            float scenePropsTime = Time.realtimeSinceStartup;
             GenerateSceneProps();
+            Debug.Log($"Scene Props Time: {Time.realtimeSinceStartup - scenePropsTime}s");
+
+            Debug.Log($"Whole Gen Process Time: {Time.realtimeSinceStartup - wholeProcessStartTime}s");
         }
         #endregion
 

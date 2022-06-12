@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.VFX;
 using Unity.Burst;
 using Unity.Mathematics;
 using Unity.Jobs;
@@ -33,8 +34,9 @@ namespace TerrainGeneration
         [SerializeField] private MeshFilter meshFilter;
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private MeshCollider meshCollider;
+        [SerializeField] private VisualEffect meshVFX;
 
-        public Chunk(int3 _id, float3 _centre, float _size, Material terrainMat, GameObject holder)
+        public Chunk(int3 _id, float3 _centre, float _size, Material terrainMat, VisualEffectAsset terrainVFX, GameObject holder)
         {
             attributes = new ChunkAttributes
             {
@@ -53,6 +55,8 @@ namespace TerrainGeneration
             meshFilter = meshHolder.AddComponent<MeshFilter>();
             meshRenderer = meshHolder.AddComponent<MeshRenderer>();
             meshRenderer.material = terrainMat;
+            meshVFX = meshHolder.AddComponent<VisualEffect>();
+            meshVFX.visualEffectAsset = terrainVFX;
 
             meshFilter.mesh = mesh;
             meshCollider = meshRenderer.gameObject.AddComponent<MeshCollider>();
