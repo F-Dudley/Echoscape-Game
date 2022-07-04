@@ -4,14 +4,13 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
   m_Name: Planet_03_Material
   m_Shader: {fileID: 4800000, guid: 511e821c788ce374e9310abe9316cdd5, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _EMISSION _SOFT_BLEND_SWITCH_ON
   m_LightmapFlags: 1
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -131,4 +130,3 @@ Material:
     - _Glow_Tint: {r: 1, g: 0.9841785, b: 0.9558824, a: 0}
     - _Planet_Tint: {r: 0.2794118, g: 0.23775506, b: 0.06368945, a: 0}
     - _Test_A: {r: 0.4632353, g: 0.9555781, b: 1, a: 0}
-  m_BuildTextureStacks: []

@@ -10,8 +10,8 @@ Material:
   m_Name: Planet_01_Material 1
   m_Shader: {fileID: 4800000, guid: 511e821c788ce374e9310abe9316cdd5, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _EMISSION _SOFT_BLEND_SWITCH_ON
-  m_LightmapFlags: 1
-  m_EnableInstancingVariants: 1
+  m_LightmapFlags: 2
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -96,6 +96,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AlphaCutoff: 0.5
     - _BumpScale: 1
     - _Cutoff: 0.43
     - _DetailNormalMapScale: 1
@@ -133,4 +134,3 @@ Material:
     - _EmissionColor: {r: 0.5735294, g: 0.29665318, b: 0, a: 1}
     - _Glow_Tint: {r: 1, g: 0.09558821, b: 0.09558821, a: 0}
     - _Planet_Tint: {r: 0.4393867, g: 0.4000865, b: 0.7352941, a: 0}
-  m_BuildTextureStacks: []

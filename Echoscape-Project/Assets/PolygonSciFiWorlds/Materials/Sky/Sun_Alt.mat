@@ -4,14 +4,13 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
   m_Name: Sun_Alt
   m_Shader: {fileID: 4800000, guid: 511e821c788ce374e9310abe9316cdd5, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _EMISSION
   m_LightmapFlags: 1
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -104,4 +103,3 @@ Material:
     - _EmissionColor: {r: 0.42322502, g: 0, b: 0.5735294, a: 1}
     - _Glow_Tint: {r: 1, g: 0.64137924, b: 0, a: 0}
     - _Planet_Tint: {r: 1, g: 0.821501, b: 0.5955882, a: 0}
-  m_BuildTextureStacks: []
