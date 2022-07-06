@@ -6,7 +6,12 @@ public class MainMenu : MonoBehaviour
 {
     public void StartGame()
     {
-        SceneLoader.instance.LoadActiveScene("GameHub");
+        SceneLoader.instance.LoadScene("GameHub");
+    }
+
+    public void StartDemoGame()
+    {
+        SceneLoader.instance.LoadScene("DemoScene");
     }
 
     public void OpenSettings()

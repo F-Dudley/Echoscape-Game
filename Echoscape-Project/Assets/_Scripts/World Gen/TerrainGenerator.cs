@@ -30,9 +30,10 @@ namespace TerrainGeneration
     }
     #endif
 
-    public class TerrainGenerator : MonoBehaviour
+    public class TerrainGenerator : MonoBehaviour, ISceneLoadProcess
     {
         [Header("Terrain Settings")]
+        [SerializeField] private bool processedFinished = false;
         [SerializeField] private PlanetAttributes planetAttributes;
         [SerializeField] private bool useFlatShading = true;
         [SerializeField] private Chunk[] chunks;
@@ -65,13 +66,17 @@ namespace TerrainGeneration
         [SerializeField] private Color chunkCentre_Col;
 
         private float wholeProcessStartTime = 0.0f;
-        #endif
+#endif
 
         #region Unity Functions
 
 #if DEBUG
         private void Start()
         {
+            SceneLoader.instance?.sceneLoadProcesses.Add(this);
+            processedFinished = false;
+            
+
             wholeProcessStartTime = Time.realtimeSinceStartup;
 
             // Create Needed Textures
@@ -185,7 +190,7 @@ namespace TerrainGeneration
         }
 #endregion
 
-#region Terrain Generation
+        #region Terrain Generation
         private void InitializeEffects()
         {
             meshMaterial.SetVector("PlanetCentre", chunkHolder.position);
@@ -310,6 +315,8 @@ namespace TerrainGeneration
 #else
             GenerateSceneProps();
 #endif
+
+            processedFinished = true;
         }
         #endregion
 
@@ -320,7 +327,7 @@ namespace TerrainGeneration
         }
 #endregion
 
-#region Helpers
+        #region Helpers
         private void DispatchShader(ComputeShader shader, int iterationsX, int iterationsY = 1, int iterationsZ = 1, int kernel = 0)
         {
             uint x, y, z;
@@ -333,6 +340,8 @@ namespace TerrainGeneration
 
             shader.Dispatch(kernel, numGroupsX, numGroupsY, numGroupsZ);
         }
-#endregion
+
+        public bool FinishedProcess() => processedFinished;
+        #endregion
     }
 }

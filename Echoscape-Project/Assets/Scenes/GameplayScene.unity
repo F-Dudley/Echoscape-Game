@@ -396,7 +396,7 @@ MonoBehaviour:
     numChunks: 5
     pointsPerAxis: 15
     isoLevel: 0
-    noiseScale: 0.4
+    noiseScale: 0.5
     noiseHeightMultiplier: 0.03
   useFlatShading: 1
   chunks: []
