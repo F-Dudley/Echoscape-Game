@@ -10,6 +10,7 @@ public class SceneLoader : MonoBehaviour
     public static SceneLoader instance { get; private set; }
 
     [Header("Scene Loading")]
+    public UnityEvent SceneLoaded;
     public UnityAction<float> SceneLoadProgress;
     public List<ISceneLoadProcess> sceneLoadProcesses = new List<ISceneLoadProcess>();
 
@@ -47,26 +48,24 @@ public class SceneLoader : MonoBehaviour
 
         SceneManager.LoadScene("TransitionScene", LoadSceneMode.Single);
 
-
-        var desiredScene = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        
+        AsyncOperation desiredScene = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         desiredScene.allowSceneActivation = false;
 
-        /*
-        do
-        {
-            Debug.Log($"Scene Progress: {desiredScene.progress}");
-        } 
-        while (desiredScene.progress < 0.9f);
-        */
+        yield return new WaitUntil(() => desiredScene.isDone);
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
 
         // Wait Until Possible Scene Gen Set-Up
         yield return new WaitUntil(() => EvaluateSceneInitProcesses());
-
+        
         desiredScene.allowSceneActivation = true;
         GameManager.instance.IsActive = true;
         EnablePlayers();
 
-        SceneManager.UnloadSceneAsync("TransitionScene");
+        Debug.Log("Unloading Transition Scene");
+        SceneManager.UnloadSceneAsync(SceneManager.GetSceneByName("TransitionScene"));
+
+        SceneLoaded.Invoke();
 
         sceneLoadProcesses.Clear();
     }

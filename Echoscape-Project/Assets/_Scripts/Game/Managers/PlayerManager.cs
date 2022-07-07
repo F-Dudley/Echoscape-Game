@@ -30,11 +30,25 @@ public class PlayerManager : MonoBehaviour
     {
         if (instance == null) instance = this;
 
-        GameObject.DontDestroyOnLoad(playerHolder.gameObject);
+        playerHolder = new GameObject("PlayerHolder").transform;
+        playerHolder.parent = this.transform;
     }
     #endregion
 
     #region Player Management
+    private void OnPlayerJoined(PlayerInput pInput)
+    {
+        GameObject playerRoot = pInput.transform.root.gameObject;
+        players.Add(playerRoot);
+
+        playerRoot.transform.parent = playerHolder;
+    }
+
+    private void OnPlayerLeft(PlayerInput pInput)
+    { 
+        
+    }
+    
     public void ShowPlayers()
     {
         hidingPlayers = false;
@@ -53,19 +67,6 @@ public class PlayerManager : MonoBehaviour
         {
             player.SetActive(false);
         }
-    }
-
-    private void OnPlayerJoined(PlayerInput pInput)
-    {
-        GameObject playerRoot = pInput.transform.root.gameObject;
-        players.Add(playerRoot);
-
-        playerRoot.transform.parent = playerHolder;
-    }
-
-    private void OnPlayerLeft(PlayerInput pInput)
-    { 
-        
     }
     #endregion
 }

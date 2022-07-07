@@ -33,7 +33,7 @@ namespace TerrainGeneration
     public class TerrainGenerator : MonoBehaviour, ISceneLoadProcess
     {
         [Header("Terrain Settings")]
-        [SerializeField] private bool processedFinished = false;
+        [SerializeField] private bool processFinished = false;
         [SerializeField] private PlanetAttributes planetAttributes;
         [SerializeField] private bool useFlatShading = true;
         [SerializeField] private Chunk[] chunks;
@@ -71,11 +71,15 @@ namespace TerrainGeneration
         #region Unity Functions
 
 #if DEBUG
+        private void Awake()
+        {
+            SceneLoader.instance?.sceneLoadProcesses.Add(this);
+        }
+
         private void Start()
         {
             SceneLoader.instance?.sceneLoadProcesses.Add(this);
-            processedFinished = false;
-            
+            processFinished = false;
 
             wholeProcessStartTime = Time.realtimeSinceStartup;
 
@@ -316,7 +320,7 @@ namespace TerrainGeneration
             GenerateSceneProps();
 #endif
 
-            processedFinished = true;
+            processFinished = true;
         }
         #endregion
 
@@ -341,7 +345,7 @@ namespace TerrainGeneration
             shader.Dispatch(kernel, numGroupsX, numGroupsY, numGroupsZ);
         }
 
-        public bool FinishedProcess() => processedFinished;
+        public bool FinishedProcess() => processFinished;
         #endregion
     }
 }
