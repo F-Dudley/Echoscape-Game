@@ -610,6 +610,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 211d99322a3a4544a9cdd8b69a96f8b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  processFinished: 0
   planetAttributes:
     terrainSize: 300
     numChunks: 5
