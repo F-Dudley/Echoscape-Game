@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance { get; private set; }
 
-    [SerializeField] private bool isActive = true;
+    [SerializeField] private bool isActive = false;
     public bool IsActive 
     { 
         get => isActive; 
@@ -19,10 +19,5 @@ public class GameManager : MonoBehaviour
         else Destroy(this.gameObject);
 
         GameObject.DontDestroyOnLoad(this.gameObject);
-    }
-
-    private void Update()
-    {
-        
     }
 }

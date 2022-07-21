@@ -16,56 +16,65 @@ public class PlayerManager : MonoBehaviour
         set
         {
             hidingPlayers = value;
-            if (value) HidePlayers();
-            else ShowPlayers();
         }
     }
-    [SerializeField] private List<GameObject> players = new List<GameObject>();
+
+    [SerializeField] private List<PlayerInput> playerInputs;
 
     [Header("Scene Grouping")]
     [SerializeField] private Transform playerHolder;
+    [SerializeField] private Transform playerHoldingCell;
 
     #region Unity Functions
     private void Awake()
     {
         if (instance == null) instance = this;
 
-        playerHolder = new GameObject("PlayerHolder").transform;
-        playerHolder.parent = this.transform;
+        DontDestroyOnLoad(playerHolder);
+        PlayerInput[] players = playerHolder.GetComponentsInChildren<PlayerInput>();
+        foreach (PlayerInput player in players)
+        {
+            playerInputs.Add(player);
+            player.DeactivateInput();
+        }
     }
     #endregion
 
+    #region Player Scene Loading
+
+    #endregion
+
     #region Player Management
-    private void OnPlayerJoined(PlayerInput pInput)
+    public void EnablePlayerInput()
     {
-        GameObject playerRoot = pInput.transform.root.gameObject;
-        players.Add(playerRoot);
-
-        playerRoot.transform.parent = playerHolder;
-    }
-
-    private void OnPlayerLeft(PlayerInput pInput)
-    { 
-        
-    }
-    
-    public void ShowPlayers()
-    {
-        hidingPlayers = false;
-
-        foreach (GameObject player in players)
+        foreach (PlayerInput pInput in playerInputs)
         {
-            player.SetActive(true);
+            pInput.ActivateInput();
         }
     }
 
-    public void HidePlayers()
+    public void DisablePlayerInput()
     {
-        hidingPlayers = true;
-
-        foreach (GameObject player in players)
+        foreach (PlayerInput pInput in playerInputs)
         {
-            player.SetActive(false);
+            pInput.DeactivateInput();
+        }
+    }
+
+    public void MoveIntoHolding()
+    {
+        foreach (Transform player in playerHolder)
+        {
+            player.position = playerHoldingCell.position;
+        }
+    }
+
+    public void MoveIntoPosition(Transform spawnPos)
+    {
+        foreach (Transform player in playerHolder)
+        {
+            player.position = spawnPos.position;
+            player.rotation = spawnPos.rotation;
         }
     }
     #endregion

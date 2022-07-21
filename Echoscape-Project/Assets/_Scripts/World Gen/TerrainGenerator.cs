@@ -34,10 +34,16 @@ namespace TerrainGeneration
     {
         [Header("Terrain Settings")]
         [SerializeField] private bool processFinished = false;
-        [SerializeField] private PlanetAttributes planetAttributes;
-        [SerializeField] private bool useFlatShading = true;
+        private PlanetAttributes planetAttributes;
+        private bool useFlatShading = false;
         [SerializeField] private Chunk[] chunks;
         [SerializeField] private Transform chunkHolder;
+        [SerializeField] private Vector3 planetCentre;
+
+        [SerializeField] private GameObject spawnPoint;
+        [SerializeField] private GameObject escapePoint;
+
+        [SerializeField] private List<GameObject> placeables = new List<GameObject>();
 
         [Header("Density Texture")]
         private int textureSize;
@@ -53,6 +59,9 @@ namespace TerrainGeneration
         [SerializeField] private VisualEffectAsset meshVFXAsset;
 
         private Coroutine meshCreation;
+
+        [Header("Scene Prop Settings")]
+        [SerializeField] private LayerMask placeableMask;
 
         #if DEBUG
         [Header("Debug")]
@@ -73,13 +82,8 @@ namespace TerrainGeneration
 #if DEBUG
         private void Awake()
         {
-            SceneLoader.instance?.sceneLoadProcesses.Add(this);
-        }
-
-        private void Start()
-        {
-            SceneLoader.instance?.sceneLoadProcesses.Add(this);
-            processFinished = false;
+            processFinished = false;            
+            LoadPlanetOptions();
 
             wholeProcessStartTime = Time.realtimeSinceStartup;
 
@@ -103,6 +107,7 @@ namespace TerrainGeneration
 
             // Terrain Generation For Each Chunk, Contained in Coroutine.
             meshCreation = StartCoroutine(GenerateTerrain(request));
+
         }
 
         private void OnDrawGizmos()
@@ -110,7 +115,7 @@ namespace TerrainGeneration
             if (!drawDebug) return;
 
             Gizmos.color = terrainBounds_Col;
-            Gizmos.DrawWireCube(Vector3.zero, (Vector3.one * planetAttributes.terrainSize));
+            Gizmos.DrawWireCube(planetCentre, (Vector3.one * planetAttributes.terrainSize));
 
             foreach (Chunk chunk in chunks)
             {
@@ -120,6 +125,8 @@ namespace TerrainGeneration
                 Gizmos.color = chunkBounds_Col;
                 Gizmos.DrawWireCube(chunk.attributes.centre, (Vector3.one * chunk.attributes.size));
             }
+
+            Gizmos.DrawCube(UnityEngine.Random.onUnitSphere * planetAttributes.terrainSize, Vector3.one * 10f);
         }
 #else
         private void Start()
@@ -195,6 +202,26 @@ namespace TerrainGeneration
 #endregion
 
         #region Terrain Generation
+        private void LoadPlanetOptions()
+        {
+            WorldType chosenWorld;
+            {
+                WorldType[] worlds = Resources.LoadAll<WorldType>("Planets");
+                chosenWorld = worlds[UnityEngine.Random.Range(0, worlds.Length - 1)];                
+            }
+
+            Debug.Log("Chosen World: " + chosenWorld.worldName);
+
+            // Assign Planet Options
+            planetAttributes = chosenWorld.planetAttributes;
+            useFlatShading = chosenWorld.useFlatShading;
+            
+            // Load VFX Assets
+            meshMaterial = chosenWorld.meshMaterial;
+            meshShader = chosenWorld.meshShader;
+            meshVFXAsset = chosenWorld.meshVFXAsset;
+        }
+
         private void InitializeEffects()
         {
             meshMaterial.SetVector("PlanetCentre", chunkHolder.position);
@@ -327,7 +354,44 @@ namespace TerrainGeneration
         #region Prop Generation
         private void GenerateSceneProps()
         {
+            // Spawn Main Scene Props
+            {
+                SpawnPlaceable(ref spawnPoint);
 
+                SpawnPlaceable(ref escapePoint);
+            }
+
+            // Spawn Additional Scene Props
+            {
+                
+            }
+        }
+
+        private void SpawnPlaceable(ref GameObject gameObject)
+        {
+            Vector3 positionAroundTerrain = GetRandomPointAroundPlanet();
+            
+            RaycastHit rayhit;
+
+            Ray ray = new Ray(positionAroundTerrain, (planetCentre - positionAroundTerrain).normalized);
+
+            if (Physics.Raycast(ray, out rayhit, planetAttributes.terrainSize))
+            {
+                if (!rayhit.collider.gameObject.layer.Equals(placeableMask))
+                {
+                    gameObject = Instantiate<GameObject>(gameObject, rayhit.point, Quaternion.identity);
+                    gameObject.transform.localRotation = Quaternion.FromToRotation(Vector3.up, rayhit.normal);                    
+                }
+            }
+            else
+            {
+                Debug.Log("Cannot Place Placeable Object", gameObject);
+            }
+        }
+
+        private Vector3 GetRandomPointAroundPlanet()
+        {
+            return UnityEngine.Random.onUnitSphere * (planetAttributes.terrainSize / 2);
         }
 #endregion
 

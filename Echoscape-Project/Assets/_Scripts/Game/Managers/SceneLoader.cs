@@ -46,21 +46,20 @@ public class SceneLoader : MonoBehaviour
         GameManager.instance.IsActive = false;
         DisablePlayers();
 
-        SceneManager.LoadScene("TransitionScene", LoadSceneMode.Single);
+        AsyncOperation loadingScene = SceneManager.LoadSceneAsync("TransitionScene", LoadSceneMode.Single);
 
-        
+        yield return new WaitUntil(() => loadingScene.isDone);
+        Debug.Log("Transition Scene Loaded\nPreparing to Load Requested Scene.");
+
         AsyncOperation desiredScene = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-        desiredScene.allowSceneActivation = false;
 
-        yield return new WaitUntil(() => desiredScene.isDone);
+        yield return new WaitUntil(() =>
+        {
+            Debug.Log($"Loading Progress: {desiredScene.progress}");
+
+            return desiredScene.isDone;
+        });
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
-
-        // Wait Until Possible Scene Gen Set-Up
-        yield return new WaitUntil(() => EvaluateSceneInitProcesses());
-        
-        desiredScene.allowSceneActivation = true;
-        GameManager.instance.IsActive = true;
-        EnablePlayers();
 
         Debug.Log("Unloading Transition Scene");
         SceneManager.UnloadSceneAsync(SceneManager.GetSceneByName("TransitionScene"));
@@ -87,14 +86,12 @@ public class SceneLoader : MonoBehaviour
     #region Player State Transitions
     private void EnablePlayers()
     {
-        PlayerInputManager.instance.EnableJoining();
-        PlayerManager.instance.ShowPlayers();
+        
     }
 
     private void DisablePlayers()
     {
-        PlayerInputManager.instance.DisableJoining();
-        PlayerManager.instance.HidePlayers();
+        
     }
     #endregion
 }
