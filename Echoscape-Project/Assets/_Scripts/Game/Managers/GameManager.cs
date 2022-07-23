@@ -13,11 +13,17 @@ public class GameManager : MonoBehaviour
         set => isActive = value;
     }
 
+
     private void Awake()
     {
         if (instance == null) instance = this;
         else Destroy(this.gameObject);
 
         GameObject.DontDestroyOnLoad(this.gameObject);
+    }
+
+    private void OnApplicationFocus(bool focus)
+    {
+        Cursor.lockState = focus ? CursorLockMode.Locked : CursorLockMode.None;
     }
 }
