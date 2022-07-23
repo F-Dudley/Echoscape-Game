@@ -356,6 +356,8 @@ namespace TerrainGeneration
         {
             // Spawn Main Scene Props
             {
+                Debug.Log("Placing Main Scene Props");
+
                 SpawnPlaceable(ref spawnPoint);
 
                 SpawnPlaceable(ref escapePoint);
@@ -379,13 +381,16 @@ namespace TerrainGeneration
             {
                 if (!rayhit.collider.gameObject.layer.Equals(placeableMask))
                 {
-                    gameObject = Instantiate<GameObject>(gameObject, rayhit.point, Quaternion.identity);
-                    gameObject.transform.localRotation = Quaternion.FromToRotation(Vector3.up, rayhit.normal);                    
+                    GameObject instantiatedObject = Instantiate<GameObject>(gameObject, rayhit.point, Quaternion.identity);
+                    
+                    instantiatedObject.transform.localRotation = Quaternion.FromToRotation(Vector3.up, rayhit.normal);
+
+                    gameObject = instantiatedObject;
                 }
             }
             else
             {
-                Debug.Log("Cannot Place Placeable Object", gameObject);
+                Debug.LogError($"Cannot Place Spawnable Object\nObject Name: {gameObject.name}");
             }
         }
 

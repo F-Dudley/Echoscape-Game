@@ -225,6 +225,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1044552321}
+  - component: {fileID: 1044552322}
   m_Layer: 7
   m_Name: Chunks
   m_TagString: Untagged
@@ -246,6 +247,18 @@ Transform:
   m_Father: {fileID: 2023812375}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1044552322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1044552320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ca8cbe641ec6047aa49f4b7d97f0a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2023812373
 GameObject:
   m_ObjectHideFlags: 0
@@ -276,14 +289,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   processFinished: 0
-  planetAttributes:
-    terrainSize: 300
-    numChunks: 5
-    pointsPerAxis: 15
-    isoLevel: 0
-    noiseScale: 0.5
-    noiseHeightMultiplier: 0.03
-  useFlatShading: 0
   chunks: []
   chunkHolder: {fileID: 1044552321}
   planetCentre: {x: 0, y: 0, z: 0}
@@ -324,6 +329,9 @@ MonoBehaviour:
   meshMaterial: {fileID: 2100000, guid: 86f9cd4af965a334fb9f47de0eb719a4, type: 2}
   meshShader: {fileID: 0}
   meshVFXAsset: {fileID: 8926484042661614526, guid: eaecdacdd1599824da46dfc1e40166dc, type: 3}
+  placeableMask:
+    serializedVersion: 2
+    m_Bits: 0
   drawDebug: 0
   genTimes:
     textureGenTime: 0

@@ -56,7 +56,7 @@ public class Teleporter : MonoBehaviour
         {
             playersInTeleporterRange++;
 
-            if (playersInTeleporterRange >= PlayerInputManager.instance.playerCount && teleportingCoroutine == null)
+            if (teleportingCoroutine == null)
             {
                 teleportingCoroutine = StartCoroutine(Teleporting());
             }
