@@ -232,7 +232,7 @@ MonoBehaviour:
   m_MoveRepeatRate: 0.1
   m_ActionsAsset: {fileID: -944628639613478452, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
   m_PointAction: {fileID: 5824099609248667343, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
-  m_MoveAction: {fileID: -3552364970006637457, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
+  m_MoveAction: {fileID: -4974451332160701270, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
   m_SubmitAction: {fileID: 4268220685372342137, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
   m_CancelAction: {fileID: -4187741220933488528, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
   m_LeftClickAction: {fileID: -6004364161350057390, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
