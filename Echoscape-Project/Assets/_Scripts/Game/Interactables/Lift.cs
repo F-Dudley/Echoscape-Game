@@ -25,6 +25,8 @@ public class Lift : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("Object Entered Lift");
+        Debug.Log($"Object: {other.name} - Layer: {other.gameObject.layer} - Tag: {other.gameObject.tag}");
         if ((other.gameObject.layer == liftMask || other.gameObject.CompareTag("Player")) && !lifting)
         {
             MovePlatform();

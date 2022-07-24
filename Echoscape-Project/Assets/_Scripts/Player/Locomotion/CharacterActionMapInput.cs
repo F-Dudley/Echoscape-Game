@@ -20,35 +20,54 @@ namespace Player
         [SerializeField] private bool isReloading;
         [SerializeField] private bool isSwapingWeapon;
 
+        [SerializeField] private PlayerInput pInput;
+
+        private void Awake()
+        {
+            pInput = GetComponent<PlayerInput>();
+        }
+
         #region Input Callbacks
-        
+
         public void OnMoveInput(InputAction.CallbackContext inputCallback)
         {
+            if (!InputIsActive()) return;
+
             moveInput = inputCallback.ReadValue<Vector2>();
         }
 
         public void OnJumpInput(InputAction.CallbackContext inputCallback)
         {
+            if (!InputIsActive()) return;
+            
             isJumping = inputCallback.ReadValueAsButton();
         }
 
         public void OnSprintInput(InputAction.CallbackContext inputCallback)
         {
+            if (!InputIsActive()) return;
+
             isSprinting = inputCallback.ReadValueAsButton();
         }
 
         public void OnAimInput(InputAction.CallbackContext inputCallback)
         {
+            if (!InputIsActive()) return;
+
             isAiming = inputCallback.ReadValueAsButton();
         }
 
         public void OnFireInput(InputAction.CallbackContext inputCallback)
         {
+            if (!InputIsActive()) return;
+
             isFiring = inputCallback.ReadValueAsButton();
         }
 
         public void OnReloadInput(InputAction.CallbackContext inputCallback)
         {
+            if (!InputIsActive()) return;
+
             isReloading = inputCallback.ReadValueAsButton();
         }
         #endregion
@@ -73,6 +92,8 @@ namespace Player
         {
             return isSprinting;
         }
+
+        private bool InputIsActive() => pInput.inputIsActive;
         #endregion
     }
 }

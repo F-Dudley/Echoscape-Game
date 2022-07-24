@@ -15,17 +15,25 @@ public class AlignRigidbodyToTarget : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        GameManager.instance.GravityLocationChanged.AddListener(OnGravityLocationChanged);
+        target = GameManager.instance.GetGravityCentre();
+
         tr = transform;
         r = GetComponent<Rigidbody>();
-
-        if(target == null)
+        
+        if (target == null)
         {
             Debug.LogWarning("No target has been assigned.", this);
             this.enabled = false;
         }
 	}
-	
-	void FixedUpdate () {
+
+    private void OnDestroy()
+    {
+        GameManager.instance.GravityLocationChanged.RemoveListener(OnGravityLocationChanged);
+    }
+
+    void FixedUpdate () {
 
         //Get this transform's 'forward' direction;
         Vector3 _forwardDirection = tr.forward;
@@ -41,5 +49,11 @@ public class AlignRigidbodyToTarget : MonoBehaviour {
         //Calculate final new rotation and set this rigidbody's rotation;
         Quaternion _newRotation = Quaternion.LookRotation(_newForwardDirection, _newUpDirection);
         r.MoveRotation(_newRotation);
+    }
+
+    private void OnGravityLocationChanged(Transform gravityCentre)
+    {
+        target = gravityCentre;
+        this.enabled = gravityCentre != null;
     }
 }

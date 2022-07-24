@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,6 +14,9 @@ public class GameManager : MonoBehaviour
         set => isActive = value;
     }
 
+    [Header("Gravity")]
+    [SerializeField] private Transform gravityCentre;
+    public UnityEvent<Transform> GravityLocationChanged;
 
     private void Awake()
     {
@@ -26,4 +30,17 @@ public class GameManager : MonoBehaviour
     {
         Cursor.lockState = focus ? CursorLockMode.Locked : CursorLockMode.None;
     }
+
+    #region Gravity Functions
+    public void SetGravityCentre(Transform gravityCentre)
+    {
+        this.gravityCentre = gravityCentre;
+        GravityLocationChanged.Invoke(gravityCentre);
+    }
+
+    public Transform GetGravityCentre()
+    {
+        return gravityCentre;
+    }
+    #endregion
 }
