@@ -31,6 +31,7 @@ namespace Weapons
         [SerializeField] protected float reloadTime = 1f;
 
         [SerializeField] protected Transform fireLocation;
+        [SerializeField] protected ParticleSystem fireParticles;
 
         protected float fireDelayTime = 0f;
         protected WaitForSeconds reloadDelay;

@@ -70,6 +70,11 @@ namespace Player
 
             isReloading = inputCallback.ReadValueAsButton();
         }
+
+        public void OnOptionsInput(InputAction.CallbackContext inputCallback)
+        {
+            GameManager.instance.ToggleOptions();
+        }
         #endregion
 
         #region Main Value Getters
@@ -91,6 +96,21 @@ namespace Player
         public override bool IsSprintKeyPressed()
         {
             return isSprinting;
+        }
+
+        public bool IsFireKeyPressed()
+        {
+            return isFiring;
+        }
+
+        public bool IsAimKeyPressed()
+        {
+            return isAiming;
+        }
+
+        public bool IsSwappingKeyPressed()
+        {
+            return isSwapingWeapon;
         }
 
         private bool InputIsActive() => pInput.inputIsActive;

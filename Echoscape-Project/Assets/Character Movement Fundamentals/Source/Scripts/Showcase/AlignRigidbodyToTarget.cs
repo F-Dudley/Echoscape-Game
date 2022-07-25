@@ -10,16 +10,14 @@ public class AlignRigidbodyToTarget : MonoBehaviour {
     //Target transform used for alignment;
     public Transform target;
 
-    Transform tr;
-    Rigidbody r;
+    [SerializeField] private Rigidbody rb;
 
 	// Use this for initialization
 	void Start () {
-        GameManager.instance.GravityLocationChanged.AddListener(OnGravityLocationChanged);
-        target = GameManager.instance.GetGravityCentre();
+        target = GameManager.instance?.GetGravityCentre();
+        GameManager.instance?.GravityLocationChanged.AddListener(OnGravityLocationChanged);
 
-        tr = transform;
-        r = GetComponent<Rigidbody>();
+        rb = gameObject.GetComponent<Rigidbody>();
         
         if (target == null)
         {
@@ -36,19 +34,19 @@ public class AlignRigidbodyToTarget : MonoBehaviour {
     void FixedUpdate () {
 
         //Get this transform's 'forward' direction;
-        Vector3 _forwardDirection = tr.forward;
+        Vector3 _forwardDirection = transform.forward;
 
         //Calculate new 'up' direction;
-        Vector3 _newUpDirection = (tr.position - target.position).normalized;
+        Vector3 _newUpDirection = (transform.position - target.position).normalized;
 
         //Calculate rotation between this transform's current 'up' direction and the new 'up' direction;
-        Quaternion _rotationDifference = Quaternion.FromToRotation(tr.up, _newUpDirection);
+        Quaternion _rotationDifference = Quaternion.FromToRotation(transform.up, _newUpDirection);
         //Apply the rotation to this transform's 'forward' direction;
         Vector3 _newForwardDirection = _rotationDifference * _forwardDirection;
 
         //Calculate final new rotation and set this rigidbody's rotation;
         Quaternion _newRotation = Quaternion.LookRotation(_newForwardDirection, _newUpDirection);
-        r.MoveRotation(_newRotation);
+        rb.MoveRotation(_newRotation);
     }
 
     private void OnGravityLocationChanged(Transform gravityCentre)

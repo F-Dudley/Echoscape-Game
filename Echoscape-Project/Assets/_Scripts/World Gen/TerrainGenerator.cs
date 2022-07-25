@@ -7,7 +7,6 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Burst;
-using System.Linq;
 
 namespace TerrainGeneration
 {
@@ -107,7 +106,11 @@ namespace TerrainGeneration
 
             // Terrain Generation For Each Chunk, Contained in Coroutine.
             meshCreation = StartCoroutine(GenerateTerrain(request));
+        }
 
+        private void Start()
+        {
+            GameManager.instance.SetGravityCentre(chunkHolder);
         }
 
         private void OnDrawGizmos()
@@ -359,6 +362,7 @@ namespace TerrainGeneration
                 Debug.Log("Placing Main Scene Props");
 
                 SpawnPlaceable(ref spawnPoint);
+                spawnPoint.GetComponent<Spawnpoint>().MovePlayersToPoint();
 
                 SpawnPlaceable(ref escapePoint);
             }
@@ -394,11 +398,11 @@ namespace TerrainGeneration
             }
         }
 
-        private Vector3 GetRandomPointAroundPlanet()
+        public Vector3 GetRandomPointAroundPlanet()
         {
             return UnityEngine.Random.onUnitSphere * (planetAttributes.terrainSize / 2);
         }
-#endregion
+        #endregion
 
         #region Helpers
         private void DispatchShader(ComputeShader shader, int iterationsX, int iterationsY = 1, int iterationsZ = 1, int kernel = 0)

@@ -11,6 +11,6 @@ public class GravityCentre : MonoBehaviour
 
     private void OnDestroy()
     {
-        GameManager.instance.SetGravityCentre(null);
+        
     }
 }

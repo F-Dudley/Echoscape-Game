@@ -455,6 +455,14 @@
                     "interactions": ""
                 },
                 {
+                    "name": "Options",
+                    "type": "Button",
+                    "id": "6c5d3bab-e101-47ff-bc78-b344c240f302",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "TrackedDeviceOrientation",
                     "type": "PassThrough",
                     "id": "a9e0d238-fc61-403a-85d6-cc7a9441b463",
@@ -856,6 +864,28 @@
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "138cf20e-e439-4929-a69b-000e2ef4b5ee",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Options",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c7facb7a-cc83-40a2-8525-164bde6f184d",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Options",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

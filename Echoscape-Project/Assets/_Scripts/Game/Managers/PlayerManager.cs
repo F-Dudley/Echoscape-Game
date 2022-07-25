@@ -61,6 +61,14 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public void ChangePlayerActionMap(string actionMapName)
+    {
+        foreach (PlayerInput pInput in playerInputs)
+        {
+            pInput.SwitchCurrentActionMap(actionMapName);
+        }
+    }
+
     public void MoveIntoHolding()
     {
         foreach (Transform player in playerHolder)
@@ -76,6 +84,18 @@ public class PlayerManager : MonoBehaviour
             player.position = spawnPos.position;
             player.rotation = spawnPos.rotation;
         }
+    }
+
+    public Transform GetPlayerTransform()
+    {
+        return playerInputs[0].transform;
+    }
+
+    public Vector3 GetPositionNearPlayer()
+    {
+        Transform playerTransform = playerInputs[0].transform;
+
+        return playerTransform.position + (playerTransform.up * 50.0f) + (playerTransform.forward * Random.Range(-50, 50)) + (playerTransform.right * Random.Range(-30, 30.0f));
     }
     #endregion
 }

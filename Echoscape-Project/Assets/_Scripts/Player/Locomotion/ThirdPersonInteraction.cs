@@ -21,9 +21,6 @@ namespace Player
         [SerializeField] private Camera playerCamera;
         [SerializeField] private CinemachineVirtualCamera aimCamera;
 
-        [Header("References")]
-        [SerializeField] private UserInput userInput;
-
         #region Unity Functions
         private void Start()
         {

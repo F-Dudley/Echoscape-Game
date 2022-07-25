@@ -22,7 +22,7 @@ namespace Player
         [Header("References")]
         [SerializeField] private Transform weaponHolder;
         [SerializeField] private Animator playerAnimator;
-        private UserInput userInput;
+        [SerializeField] private CharacterActionMapInput userInput;
 
         [Header("Animations")]
         [SerializeField] private bool isSwapAnimationPlaying;        
@@ -33,9 +33,6 @@ namespace Player
         #region Unity Functions
         private void Start()
         {
-            playerAnimator = GetComponent<Animator>();
-            userInput = GetComponent<UserInput>();
-
             foreach (Transform weapon in weaponHolder)
             {
                 weapon.gameObject.SetActive(false);
@@ -60,17 +57,12 @@ namespace Player
 
             if (equippedWeapon == null || isSwapAnimationPlaying) return;
 
-            if (userInput.shooting)
+            if (userInput.IsFireKeyPressed())
             {
                 FireWeapon();
             }
 
-            if (userInput.reloading)
-            {
-                ReloadWeapon();
-            }
-
-            if (userInput.swapWeapon)
+            if (userInput.IsSwappingKeyPressed())
             {
                 SwapWeapon();
             }
@@ -78,7 +70,7 @@ namespace Player
         #endregion
         
         #region Gun Functions
-        private void FireWeapon()
+        public void FireWeapon()
         {
             if (equippedWeapon.CanShoot)
             {
@@ -86,15 +78,15 @@ namespace Player
             }
         }
 
-        private void ReloadWeapon()
+        public void ReloadWeapon()
         {
-            if (equippedWeapon.CanReload)
+            if (equippedWeapon.CanReload || (equippedWeapon == null || isSwapAnimationPlaying))
             {
                 equippedWeapon.Reload();
             }
         }
 
-        private void SwapWeapon()
+        public void SwapWeapon()
         {
             isSwapAnimationPlaying = true;
             equippedWeapon = null;
@@ -119,12 +111,12 @@ namespace Player
             _animWeaponTypeID = Animator.StringToHash("WeaponType");
         }
 
-        private void BackWeaponReached(AnimationEvent animationEvent)
+        public void BackWeaponReached()
         {
             ChangeWeaponVisability(currentSlot, true);
         }
 
-        private void WeaponSwapFinished(AnimationEvent animationEvent)
+        public void WeaponSwapFinished()
         {
             equippedWeapon = weaponSlots[currentSlot].weapon;
             isSwapAnimationPlaying = false;

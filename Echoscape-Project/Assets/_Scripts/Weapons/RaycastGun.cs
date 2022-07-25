@@ -24,6 +24,8 @@ namespace Weapons
             {
                 Debug.Log("Hit: " + hit.transform.name);
             }
+
+            BulletManager.instance.SpawnBullet(fireLocation);
         }
         #endregion
     }    

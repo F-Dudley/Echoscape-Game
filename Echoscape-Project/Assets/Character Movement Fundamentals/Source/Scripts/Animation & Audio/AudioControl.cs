@@ -101,6 +101,12 @@ namespace CMF
 			}
 		}
 
+		public void PlayFootstepSound()
+        {
+			int _footStepClipIndex = Random.Range(0, footStepClips.Length);
+			audioSource.PlayOneShot(footStepClips[_footStepClipIndex], audioClipVolume + audioClipVolume * Random.Range(-relativeRandomizedVolumeRange, relativeRandomizedVolumeRange));
+		}
+
 		void PlayFootstepSound(float _movementSpeed)
 		{
 			int _footStepClipIndex = Random.Range(0, footStepClips.Length);

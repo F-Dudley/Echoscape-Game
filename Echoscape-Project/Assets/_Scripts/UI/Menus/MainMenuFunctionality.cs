@@ -5,13 +5,6 @@ using UnityEngine.EventSystems;
 
 public class MainMenuFunctionality : MonoBehaviour
 {
-    [SerializeField] private GameObject firstSelected;
-
-    private void Start()
-    {
-        EventSystem.current.SetSelectedGameObject(firstSelected);
-    }
-
     public void StartGame()
     {
         SceneLoader.instance.LoadScene("GameHub");
@@ -19,7 +12,7 @@ public class MainMenuFunctionality : MonoBehaviour
 
     public void OpenSettings()
     {
-        // GameManager Open Settings
+        GameManager.instance.OpenOptions();
     }
 
     public void QuitGame()
